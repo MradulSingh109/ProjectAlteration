@@ -44,16 +44,18 @@ async function main() {
     { code: 'OTHER', name: 'Other Commodities', description: 'General packaged goods under Legal Metrology Rules.' },
   ];
 
+  const categoryMap = new Map<string, string>();
   for (const cat of categoriesData) {
-    await prisma.productCategory.upsert({
+    const createdCat = await prisma.productCategory.upsert({
       where: { code: cat.code },
       update: { name: cat.name, description: cat.description },
       create: cat,
     });
+    categoryMap.set(cat.code, createdCat.id);
   }
   console.log('✅ Seeded 6 Product Categories');
 
-  // 3. Seed Standard Legal Metrology Rules & Rule Versions
+  // 3. Seed Standard Legal Metrology Rules, Rule Versions & Category Associations
   const rulesData = [
     {
       code: 'LM-PC-MRP',
@@ -105,7 +107,7 @@ async function main() {
       },
     });
 
-    await prisma.ruleVersion.upsert({
+    const ruleVersion = await prisma.ruleVersion.upsert({
       where: {
         ruleId_version: {
           ruleId: rule.id,
@@ -126,8 +128,25 @@ async function main() {
         configuration: r.configuration,
       },
     });
+
+    // Link RuleVersion to all product categories as baseline applicable rules
+    for (const [, categoryId] of categoryMap) {
+      await prisma.ruleVersionCategory.upsert({
+        where: {
+          ruleVersionId_categoryId: {
+            ruleVersionId: ruleVersion.id,
+            categoryId: categoryId,
+          },
+        },
+        update: {},
+        create: {
+          ruleVersionId: ruleVersion.id,
+          categoryId: categoryId,
+        },
+      });
+    }
   }
-  console.log('✅ Seeded 4 Standard Rules & Rule Versions');
+  console.log('✅ Seeded 4 Standard Rules, Rule Versions & Category Applicability Maps');
 
   console.log('✨ Database seeding complete successfully!');
 }

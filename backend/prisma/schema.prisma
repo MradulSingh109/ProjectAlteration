@@ -49,6 +49,12 @@ enum OCRProcessingStatus {
   FAILED
 }
 
+enum DeclarationSource {
+  OCR
+  AI
+  MANUAL
+}
+
 enum DeclarationType {
   MRP
   NET_QUANTITY
@@ -99,12 +105,12 @@ enum ReportType {
 // ==========================================
 
 model Role {
-  id          String   @id @default(uuid())
+  id          String   @id @default(uuid()) @db.Uuid
   code        RoleCode @unique
   name        String
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamptz
 
   users User[]
 
@@ -112,21 +118,20 @@ model Role {
 }
 
 model User {
-  id           String   @id @default(uuid())
+  id           String   @id @default(uuid()) @db.Uuid
   email        String   @unique
   passwordHash String
   name         String
-  roleId       String
+  roleId       String   @db.Uuid
   isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now()) @db.Timestamptz
+  updatedAt    DateTime @updatedAt @db.Timestamptz
 
   role             Role         @relation(fields: [roleId], references: [id], onDelete: Restrict)
   inspections      Inspection[] @relation("UserInspections")
   generatedReports Report[]     @relation("UserReports")
   auditLogs        AuditLog[]   @relation("UserAuditLogs")
 
-  @@index([email])
   @@index([roleId])
   @@map("users")
 }
@@ -136,30 +141,30 @@ model User {
 // ==========================================
 
 model ProductCategory {
-  id          String    @id @default(uuid())
+  id          String    @id @default(uuid()) @db.Uuid
   code        String    @unique
   name        String
   description String?
-  deletedAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime? @db.Timestamptz
+  createdAt   DateTime  @default(now()) @db.Timestamptz
+  updatedAt   DateTime  @updatedAt @db.Timestamptz
 
-  products Product[]
+  products              Product[]
+  ruleVersionCategories RuleVersionCategory[]
 
-  @@index([code])
   @@map("product_categories")
 }
 
 model Product {
-  id               String   @id @default(uuid())
+  id               String    @id @default(uuid()) @db.Uuid
   name             String
   brandName        String
   manufacturerName String
-  categoryId       String
+  categoryId       String    @db.Uuid
   description      String?
-  deletedAt        DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  deletedAt        DateTime? @db.Timestamptz
+  createdAt        DateTime  @default(now()) @db.Timestamptz
+  updatedAt        DateTime  @updatedAt @db.Timestamptz
 
   category    ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   inspections Inspection[]
@@ -174,16 +179,17 @@ model Product {
 // ==========================================
 
 model Inspection {
-  id               String           @id @default(uuid())
+  id               String           @id @default(uuid()) @db.Uuid
   inspectionNumber String           @unique
-  productId        String
-  createdBy        String
+  productId        String           @db.Uuid
+  createdBy        String           @db.Uuid
   workflowStatus   WorkflowStatus   @default(DRAFT)
   complianceStatus ComplianceStatus @default(REVIEW)
   remarks          String?
-  completedAt      DateTime?
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  inspectedAt      DateTime         @default(now()) @db.Timestamptz
+  completedAt      DateTime?        @db.Timestamptz
+  createdAt        DateTime         @default(now()) @db.Timestamptz
+  updatedAt        DateTime         @updatedAt @db.Timestamptz
 
   product           Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
   creator           User               @relation("UserInspections", fields: [createdBy], references: [id], onDelete: Restrict)
@@ -193,46 +199,48 @@ model Inspection {
   violations        Violation[]
   reports           Report[]
 
-  @@index([inspectionNumber])
   @@index([productId])
   @@index([createdBy])
   @@index([workflowStatus])
   @@index([complianceStatus])
+  @@index([inspectedAt])
   @@index([createdAt])
   @@map("inspections")
 }
 
 model InspectionImage {
-  id               String    @id @default(uuid())
-  inspectionId     String
+  id               String    @id @default(uuid()) @db.Uuid
+  inspectionId     String    @db.Uuid
   fileUrl          String
   storageKey       String
   originalFileName String
   mimeType         String
   fileSize         Int
   imageType        ImageType @default(OTHER)
-  uploadedAt       DateTime  @default(now())
+  uploadedAt       DateTime  @default(now()) @db.Timestamptz
 
-  inspection   Inspection    @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  inspection   Inspection    @relation(fields: [inspectionId], references: [id], onDelete: Restrict)
   ocrResults   OCRResult[]
   declarations Declaration[] @relation("SourceImageDeclarations")
+  evidences    Evidence[]
 
   @@index([inspectionId])
   @@map("inspection_images")
 }
 
 model OCRResult {
-  id                String              @id @default(uuid())
-  inspectionImageId String
+  id                String              @id @default(uuid()) @db.Uuid
+  inspectionImageId String              @db.Uuid
   provider          String              @default("paddleocr")
   rawText           String
   confidence        Float
   language          String              @default("en")
   boundingBoxes     Json?
   processingStatus  OCRProcessingStatus @default(PENDING)
-  createdAt         DateTime            @default(now())
+  createdAt         DateTime            @default(now()) @db.Timestamptz
 
-  image InspectionImage @relation(fields: [inspectionImageId], references: [id], onDelete: Cascade)
+  image     InspectionImage @relation(fields: [inspectionImageId], references: [id], onDelete: Restrict)
+  evidences Evidence[]
 
   @@index([inspectionImageId])
   @@map("ocr_results")
@@ -243,20 +251,22 @@ model OCRResult {
 // ==========================================
 
 model Declaration {
-  id               String          @id @default(uuid())
-  inspectionId     String
-  type             DeclarationType
-  rawValue         String
-  normalizedValue  String?
-  confidence       Float
-  sourceImageId    String?
-  isHumanReviewed  Boolean         @default(false)
-  correctedValue   String?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  id              String            @id @default(uuid()) @db.Uuid
+  inspectionId    String            @db.Uuid
+  type            DeclarationType
+  source          DeclarationSource @default(OCR)
+  rawValue        String
+  normalizedValue String?
+  confidence      Float?
+  sourceImageId   String?           @db.Uuid
+  isHumanReviewed Boolean           @default(false)
+  correctedValue  String?
+  createdAt       DateTime          @default(now()) @db.Timestamptz
+  updatedAt       DateTime          @updatedAt @db.Timestamptz
 
-  inspection  Inspection       @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  inspection  Inspection       @relation(fields: [inspectionId], references: [id], onDelete: Restrict)
   sourceImage InspectionImage? @relation("SourceImageDeclarations", fields: [sourceImageId], references: [id], onDelete: SetNull)
+  evidences   Evidence[]
 
   @@index([inspectionId])
   @@index([type])
@@ -264,39 +274,39 @@ model Declaration {
 }
 
 // ==========================================
-// 5. VERSIONED LEGAL RULE ENGINE
+// 5. VERSIONED LEGAL RULE ENGINE & APPLICABILITY
 // ==========================================
 
 model Rule {
-  id          String   @id @default(uuid())
+  id          String   @id @default(uuid()) @db.Uuid
   code        String   @unique
   name        String
   description String?
   category    String
   isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamptz
 
   versions RuleVersion[]
 
-  @@index([code])
   @@map("rules")
 }
 
 model RuleVersion {
-  id             String    @id @default(uuid())
-  ruleId         String
+  id             String    @id @default(uuid()) @db.Uuid
+  ruleId         String    @db.Uuid
   version        Int
-  effectiveFrom  DateTime
-  effectiveTo    DateTime?
+  effectiveFrom  DateTime  @db.Timestamptz
+  effectiveTo    DateTime? @db.Timestamptz
   requirement    String
   validationType String
   configuration  Json?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime  @default(now()) @db.Timestamptz
+  updatedAt      DateTime  @updatedAt @db.Timestamptz
 
-  rule              Rule               @relation(fields: [ruleId], references: [id], onDelete: Restrict)
-  validationResults ValidationResult[]
+  rule                  Rule                  @relation(fields: [ruleId], references: [id], onDelete: Restrict)
+  ruleVersionCategories RuleVersionCategory[]
+  validationResults     ValidationResult[]
 
   @@unique([ruleId, version])
   @@index([ruleId])
@@ -304,20 +314,35 @@ model RuleVersion {
   @@map("rule_versions")
 }
 
+model RuleVersionCategory {
+  id            String   @id @default(uuid()) @db.Uuid
+  ruleVersionId String   @db.Uuid
+  categoryId    String   @db.Uuid
+  createdAt     DateTime @default(now()) @db.Timestamptz
+
+  ruleVersion RuleVersion     @relation(fields: [ruleVersionId], references: [id], onDelete: Cascade)
+  category    ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@unique([ruleVersionId, categoryId])
+  @@index([ruleVersionId])
+  @@index([categoryId])
+  @@map("rule_version_categories")
+}
+
 // ==========================================
 // 6. VALIDATION RESULTS & VIOLATIONS
 // ==========================================
 
 model ValidationResult {
-  id            String           @id @default(uuid())
-  inspectionId  String
-  ruleVersionId String
+  id            String           @id @default(uuid()) @db.Uuid
+  inspectionId  String           @db.Uuid
+  ruleVersionId String           @db.Uuid
   status        ValidationStatus
   message       String
   confidence    Float?
-  evaluatedAt   DateTime         @default(now())
+  evaluatedAt   DateTime         @default(now()) @db.Timestamptz
 
-  inspection  Inspection  @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  inspection  Inspection  @relation(fields: [inspectionId], references: [id], onDelete: Restrict)
   ruleVersion RuleVersion @relation(fields: [ruleVersionId], references: [id], onDelete: Restrict)
   violations  Violation[]
 
@@ -328,18 +353,18 @@ model ValidationResult {
 }
 
 model Violation {
-  id                 String            @id @default(uuid())
-  inspectionId       String
-  validationResultId String
+  id                 String            @id @default(uuid()) @db.Uuid
+  inspectionId       String            @db.Uuid
+  validationResultId String            @db.Uuid
   code               String
   severity           ViolationSeverity @default(MEDIUM)
   title              String
   description        String
   status             ViolationStatus   @default(OPEN)
-  createdAt          DateTime          @default(now())
-  resolvedAt         DateTime?
+  createdAt          DateTime          @default(now()) @db.Timestamptz
+  resolvedAt         DateTime?         @db.Timestamptz
 
-  inspection       Inspection       @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  inspection       Inspection       @relation(fields: [inspectionId], references: [id], onDelete: Restrict)
   validationResult ValidationResult @relation(fields: [validationResultId], references: [id], onDelete: Restrict)
   evidences        Evidence[]
 
@@ -350,16 +375,25 @@ model Violation {
 }
 
 model Evidence {
-  id          String       @id @default(uuid())
-  violationId String
-  type        EvidenceType
-  referenceId String?
-  metadata    Json?
-  createdAt   DateTime     @default(now())
+  id            String       @id @default(uuid()) @db.Uuid
+  violationId   String       @db.Uuid
+  imageId       String?      @db.Uuid
+  ocrResultId   String?      @db.Uuid
+  declarationId String?      @db.Uuid
+  type          EvidenceType
+  referenceId   String?
+  metadata      Json?
+  createdAt     DateTime     @default(now()) @db.Timestamptz
 
-  violation Violation @relation(fields: [violationId], references: [id], onDelete: Cascade)
+  violation   Violation        @relation(fields: [violationId], references: [id], onDelete: Restrict)
+  image       InspectionImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  ocrResult   OCRResult?       @relation(fields: [ocrResultId], references: [id], onDelete: SetNull)
+  declaration Declaration?     @relation(fields: [declarationId], references: [id], onDelete: SetNull)
 
   @@index([violationId])
+  @@index([imageId])
+  @@index([ocrResultId])
+  @@index([declarationId])
   @@map("evidences")
 }
 
@@ -368,15 +402,15 @@ model Evidence {
 // ==========================================
 
 model Report {
-  id           String     @id @default(uuid())
-  inspectionId String
+  id           String     @id @default(uuid()) @db.Uuid
+  inspectionId String     @db.Uuid
   fileUrl      String
   storageKey   String
   reportType   ReportType @default(FULL_COMPLIANCE)
-  generatedBy  String
-  generatedAt  DateTime   @default(now())
+  generatedBy  String     @db.Uuid
+  generatedAt  DateTime   @default(now()) @db.Timestamptz
 
-  inspection Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  inspection Inspection @relation(fields: [inspectionId], references: [id], onDelete: Restrict)
   generator  User       @relation("UserReports", fields: [generatedBy], references: [id], onDelete: Restrict)
 
   @@index([inspectionId])
@@ -385,8 +419,8 @@ model Report {
 }
 
 model AuditLog {
-  id         String   @id @default(uuid())
-  userId     String?
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @db.Uuid
   action     String
   entityType String
   entityId   String
@@ -394,7 +428,7 @@ model AuditLog {
   newValue   Json?
   ipAddress  String?
   userAgent  String?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime @default(now()) @db.Timestamptz
 
   user User? @relation("UserAuditLogs", fields: [userId], references: [id], onDelete: SetNull)
 

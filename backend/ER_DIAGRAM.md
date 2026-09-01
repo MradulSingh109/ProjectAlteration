@@ -22,61 +22,69 @@ erDiagram
     INSPECTION_IMAGE ||--o{ DECLARATION : "sources"
 
     RULE ||--o{ RULE_VERSION : "versioned as"
+    RULE_VERSION ||--o{ RULE_VERSION_CATEGORY : "applies to"
+    PRODUCT_CATEGORY ||--o{ RULE_VERSION_CATEGORY : "governed by"
+
     RULE_VERSION ||--o{ VALIDATION_RESULT : "evaluates"
     INSPECTION ||--o{ VALIDATION_RESULT : "evaluated by"
 
     VALIDATION_RESULT ||--o{ VIOLATION : "triggers"
     INSPECTION ||--o{ VIOLATION : "flagged with"
+
     VIOLATION ||--o{ EVIDENCE : "supported by"
+    INSPECTION_IMAGE ||--o{ EVIDENCE : "referenced in"
+    OCR_RESULT ||--o{ EVIDENCE : "referenced in"
+    DECLARATION ||--o{ EVIDENCE : "referenced in"
 
     INSPECTION ||--o{ REPORT : "summarized in"
 
     ROLE {
-        string id PK
+        uuid id PK
         RoleCode code UK
         string name
     }
 
     USER {
-        string id PK
+        uuid id PK
         string email UK
         string passwordHash
-        string roleId FK
+        uuid roleId FK
         boolean isActive
     }
 
     PRODUCT_CATEGORY {
-        string id PK
+        uuid id PK
         string code UK
         string name
     }
 
     PRODUCT {
-        string id PK
+        uuid id PK
         string name
         string brandName
-        string categoryId FK
+        uuid categoryId FK
     }
 
     INSPECTION {
-        string id PK
+        uuid id PK
         string inspectionNumber UK
-        string productId FK
-        string createdBy FK
+        uuid productId FK
+        uuid createdBy FK
         WorkflowStatus workflowStatus
         ComplianceStatus complianceStatus
+        timestamptz inspectedAt
     }
 
     INSPECTION_IMAGE {
-        string id PK
-        string inspectionId FK
+        uuid id PK
+        uuid inspectionId FK
         string fileUrl
         ImageType imageType
     }
 
     OCR_RESULT {
-        string id PK
-        string inspectionImageId FK
+        uuid id PK
+        uuid inspectionImageId FK
         string provider
         string rawText
         float confidence
@@ -84,62 +92,73 @@ erDiagram
     }
 
     DECLARATION {
-        string id PK
-        string inspectionId FK
+        uuid id PK
+        uuid inspectionId FK
         DeclarationType type
+        DeclarationSource source
         string rawValue
         string normalizedValue
+        float confidence
         boolean isHumanReviewed
     }
 
     RULE {
-        string id PK
+        uuid id PK
         string code UK
         string name
         boolean isActive
     }
 
     RULE_VERSION {
-        string id PK
-        string ruleId FK
+        uuid id PK
+        uuid ruleId FK
         int version
-        datetime effectiveFrom
+        timestamptz effectiveFrom
         json configuration
     }
 
+    RULE_VERSION_CATEGORY {
+        uuid id PK
+        uuid ruleVersionId FK
+        uuid categoryId FK
+    }
+
     VALIDATION_RESULT {
-        string id PK
-        string inspectionId FK
-        string ruleVersionId FK
+        uuid id PK
+        uuid inspectionId FK
+        uuid ruleVersionId FK
         ValidationStatus status
         string message
     }
 
     VIOLATION {
-        string id PK
-        string inspectionId FK
-        string validationResultId FK
+        uuid id PK
+        uuid inspectionId FK
+        uuid validationResultId FK
         ViolationSeverity severity
         ViolationStatus status
     }
 
     EVIDENCE {
-        string id PK
-        string violationId FK
+        uuid id PK
+        uuid violationId FK
+        uuid imageId FK
+        uuid ocrResultId FK
+        uuid declarationId FK
         EvidenceType type
         json metadata
     }
 
     REPORT {
-        string id PK
-        string inspectionId FK
-        string generatedBy FK
+        uuid id PK
+        uuid inspectionId FK
+        uuid generatedBy FK
         ReportType reportType
     }
 
     AUDIT_LOG {
-        string id PK
-        string userId FK
+        uuid id PK
+        uuid userId FK
         string action
         string entityType
         string entityId
@@ -158,45 +177,34 @@ erDiagram
 | **`User`** | System user accounts with hashed credentials and assigned roles. | `id` (UUID) | `roleId` -> Role |
 | **`ProductCategory`** | Extensible product categories (Food, Beverage, Cosmetic, Household, etc.). | `id` (UUID) | None |
 | **`Product`** | Physical product details being inspected across batches/locations. | `id` (UUID) | `categoryId` -> ProductCategory |
-| **`Inspection`** | Central compliance evaluation record with workflow & legal status. | `id` (UUID) | `productId` -> Product, `createdBy` -> User |
+| **`Inspection`** | Central compliance evaluation record with `inspectedAt`, workflow & legal status. | `id` (UUID) | `productId` -> Product, `createdBy` -> User |
 | **`InspectionImage`** | Metadata reference to packaging photographs (Front, Back, Side, etc.). | `id` (UUID) | `inspectionId` -> Inspection |
 | **`OCRResult`** | Raw, immutable OCR text extraction output, confidence, and bounding boxes. | `id` (UUID) | `inspectionImageId` -> InspectionImage |
-| **`Declaration`** | Mandatory packaging attributes (MRP, Net Qty, Dates, Consumer Care, etc.). | `id` (UUID) | `inspectionId` -> Inspection, `sourceImageId` -> InspectionImage |
+| **`Declaration`** | Extracted mandatory packaging attributes with `source` (OCR/AI/MANUAL) & nullable confidence. | `id` (UUID) | `inspectionId` -> Inspection, `sourceImageId` -> InspectionImage |
 | **`Rule`** | High-level Legal Metrology rule definition (e.g. `LM-PC-MRP`). | `id` (UUID) | None |
 | **`RuleVersion`** | Versioned legal rule requirement and validation criteria (preserves legal history). | `id` (UUID) | `ruleId` -> Rule |
+| **`RuleVersionCategory`** | Join entity defining rule applicability per product category. | `id` (UUID) | `ruleVersionId` -> RuleVersion, `categoryId` -> ProductCategory |
 | **`ValidationResult`** | Outcome of evaluating an inspection against a specific `RuleVersion`. | `id` (UUID) | `inspectionId` -> Inspection, `ruleVersionId` -> RuleVersion |
 | **`Violation`** | Flagged compliance failure requiring resolution or human review. | `id` (UUID) | `inspectionId` -> Inspection, `validationResultId` -> ValidationResult |
-| **`Evidence`** | Supporting evidence (bounding boxes, image regions, OCR text) for a violation. | `id` (UUID) | `violationId` -> Violation |
+| **`Evidence`** | Typed supporting evidence linking violations to images, OCR, or declarations. | `id` (UUID) | `violationId` -> Violation, `imageId`, `ocrResultId`, `declarationId` |
 | **`Report`** | Generated PDF/summary compliance audit reports. | `id` (UUID) | `inspectionId` -> Inspection, `generatedBy` -> User |
 | **`AuditLog`** | Comprehensive security and administrative action audit trail. | `id` (UUID) | `userId` -> User (nullable) |
 
 ---
 
-## 3. Key Relationships & Cardinalities
-
-* **User Management**: `1 Role` → `* Users`. `1 User` → `* Inspections`.
-* **Products**: `1 ProductCategory` → `* Products`. `1 Product` → `* Inspections`.
-* **Inspection Evidence**: `1 Inspection` → `* InspectionImages`. `1 InspectionImage` → `* OCRResults`.
-* **Declarations**: `1 Inspection` → `* Declarations`.
-* **Rule Engine**: `1 Rule` → `* RuleVersions`. `1 RuleVersion` → `* ValidationResults`.
-* **Compliance Outcomes**: `1 Inspection` → `* ValidationResults`. `1 ValidationResult` → `* Violations`. `1 Violation` → `* Evidences`.
-* **Auditability**: `1 User` → `* AuditLogs`. `1 Inspection` → `* Reports`.
-
----
-
-## 4. Deletion Strategy & Integrity Protection
+## 3. Deletion Strategy & Integrity Protection
 
 To protect legal compliance records from accidental or malicious data loss:
-* **`RESTRICT`**: Applied to `User` -> `Role`, `Product` -> `ProductCategory`, `Inspection` -> `Product` / `User`, `ValidationResult` -> `RuleVersion`, and `Report` -> `User`. Prevents deleting referenced master data while historical compliance records exist.
-* **`CASCADE`**: Applied to internal component trees (`Inspection` -> `InspectionImage`, `InspectionImage` -> `OCRResult`, `Inspection` -> `Declaration`, `Inspection` -> `ValidationResult`, `Violation` -> `Evidence`).
-* **`SET NULL`**: Applied to `Declaration` -> `sourceImageId` and `AuditLog` -> `userId` to maintain log integrity even if a user account is removed.
+* **`onDelete: Restrict`**: Applied to `InspectionImage` -> `Inspection`, `OCRResult` -> `InspectionImage`, `Declaration` -> `Inspection`, `ValidationResult` -> `Inspection`, `Violation` -> `Inspection`, `Evidence` -> `Violation`, and `Report` -> `Inspection`. Prevents deleting completed compliance inspections and erasing historical evidence.
+* **`onDelete: SetNull`**: Applied to `Evidence` -> `imageId` / `ocrResultId` / `declarationId`, `Declaration` -> `sourceImageId`, and `AuditLog` -> `userId` to maintain evidence log integrity.
 
 ---
 
-## 5. Database Commands Reference
+## 4. Database Commands Reference
 
-### Prisma Validate
+### Prisma Format & Validate
 ```bash
+npx prisma format
 npx prisma validate
 ```
 
