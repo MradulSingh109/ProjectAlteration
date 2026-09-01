@@ -18,6 +18,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Summary & Step documentation
+STEP1_SUMMARY.md
+*SUMMARY.md
+
 # OS & Editor files
 .DS_Store
 Thumbs.db
