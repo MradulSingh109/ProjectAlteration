@@ -1,5 +1,4 @@
 import { PrismaClient, RoleCode } from '@prisma/client';
-import process from 'process';
 
 const prisma = new PrismaClient();
 
@@ -130,7 +129,7 @@ async function main() {
     });
 
     // Link RuleVersion to all product categories as baseline applicable rules
-    for (const [, categoryId] of categoryMap) {
+    for (const categoryId of Array.from(categoryMap.values())) {
       await prisma.ruleVersionCategory.upsert({
         where: {
           ruleVersionId_categoryId: {
