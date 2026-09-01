@@ -1,0 +1,405 @@
+// SIH26034 Legal Metrology Compliance Engine Prisma Schema
+// PostgreSQL Database Configuration
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum RoleCode {
+  ADMIN
+  INSPECTOR
+  REVIEWER
+}
+
+enum WorkflowStatus {
+  DRAFT
+  PROCESSING
+  UNDER_REVIEW
+  COMPLETED
+  CANCELLED
+}
+
+enum ComplianceStatus {
+  PASS
+  FAIL
+  REVIEW
+}
+
+enum ImageType {
+  FRONT
+  BACK
+  SIDE
+  TOP
+  BOTTOM
+  OTHER
+}
+
+enum OCRProcessingStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum DeclarationType {
+  MRP
+  NET_QUANTITY
+  MFG_DATE
+  EXP_DATE
+  CONSUMER_CARE
+  COUNTRY_OF_ORIGIN
+  COMMODITY_NAME
+  MFG_ADDRESS
+  IMPORTER_DETAILS
+}
+
+enum ValidationStatus {
+  PASS
+  FAIL
+  REVIEW
+  NOT_APPLICABLE
+}
+
+enum ViolationSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ViolationStatus {
+  OPEN
+  CONFIRMED
+  DISMISSED
+  RESOLVED
+}
+
+enum EvidenceType {
+  IMAGE
+  OCR_TEXT
+  DECLARATION
+  BOUNDING_BOX
+}
+
+enum ReportType {
+  FULL_COMPLIANCE
+  VIOLATION_SUMMARY
+}
+
+// ==========================================
+// 1. AUTHENTICATION & USER MANAGEMENT
+// ==========================================
+
+model Role {
+  id          String   @id @default(uuid())
+  code        RoleCode @unique
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users User[]
+
+  @@map("roles")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  roleId       String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  role             Role         @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  inspections      Inspection[] @relation("UserInspections")
+  generatedReports Report[]     @relation("UserReports")
+  auditLogs        AuditLog[]   @relation("UserAuditLogs")
+
+  @@index([email])
+  @@index([roleId])
+  @@map("users")
+}
+
+// ==========================================
+// 2. PRODUCTS & CATEGORIES
+// ==========================================
+
+model ProductCategory {
+  id          String    @id @default(uuid())
+  code        String    @unique
+  name        String
+  description String?
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products Product[]
+
+  @@index([code])
+  @@map("product_categories")
+}
+
+model Product {
+  id               String   @id @default(uuid())
+  name             String
+  brandName        String
+  manufacturerName String
+  categoryId       String
+  description      String?
+  deletedAt        DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  category    ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  inspections Inspection[]
+
+  @@index([categoryId])
+  @@index([name])
+  @@map("products")
+}
+
+// ==========================================
+// 3. INSPECTION & IMAGE PIPELINE
+// ==========================================
+
+model Inspection {
+  id               String           @id @default(uuid())
+  inspectionNumber String           @unique
+  productId        String
+  createdBy        String
+  workflowStatus   WorkflowStatus   @default(DRAFT)
+  complianceStatus ComplianceStatus @default(REVIEW)
+  remarks          String?
+  completedAt      DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  product           Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
+  creator           User               @relation("UserInspections", fields: [createdBy], references: [id], onDelete: Restrict)
+  images            InspectionImage[]
+  declarations      Declaration[]
+  validationResults ValidationResult[]
+  violations        Violation[]
+  reports           Report[]
+
+  @@index([inspectionNumber])
+  @@index([productId])
+  @@index([createdBy])
+  @@index([workflowStatus])
+  @@index([complianceStatus])
+  @@index([createdAt])
+  @@map("inspections")
+}
+
+model InspectionImage {
+  id               String    @id @default(uuid())
+  inspectionId     String
+  fileUrl          String
+  storageKey       String
+  originalFileName String
+  mimeType         String
+  fileSize         Int
+  imageType        ImageType @default(OTHER)
+  uploadedAt       DateTime  @default(now())
+
+  inspection   Inspection    @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  ocrResults   OCRResult[]
+  declarations Declaration[] @relation("SourceImageDeclarations")
+
+  @@index([inspectionId])
+  @@map("inspection_images")
+}
+
+model OCRResult {
+  id                String              @id @default(uuid())
+  inspectionImageId String
+  provider          String              @default("paddleocr")
+  rawText           String
+  confidence        Float
+  language          String              @default("en")
+  boundingBoxes     Json?
+  processingStatus  OCRProcessingStatus @default(PENDING)
+  createdAt         DateTime            @default(now())
+
+  image InspectionImage @relation(fields: [inspectionImageId], references: [id], onDelete: Cascade)
+
+  @@index([inspectionImageId])
+  @@map("ocr_results")
+}
+
+// ==========================================
+// 4. EXTRACTED DECLARATIONS
+// ==========================================
+
+model Declaration {
+  id               String          @id @default(uuid())
+  inspectionId     String
+  type             DeclarationType
+  rawValue         String
+  normalizedValue  String?
+  confidence       Float
+  sourceImageId    String?
+  isHumanReviewed  Boolean         @default(false)
+  correctedValue   String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  inspection  Inspection       @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  sourceImage InspectionImage? @relation("SourceImageDeclarations", fields: [sourceImageId], references: [id], onDelete: SetNull)
+
+  @@index([inspectionId])
+  @@index([type])
+  @@map("declarations")
+}
+
+// ==========================================
+// 5. VERSIONED LEGAL RULE ENGINE
+// ==========================================
+
+model Rule {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  description String?
+  category    String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  versions RuleVersion[]
+
+  @@index([code])
+  @@map("rules")
+}
+
+model RuleVersion {
+  id             String    @id @default(uuid())
+  ruleId         String
+  version        Int
+  effectiveFrom  DateTime
+  effectiveTo    DateTime?
+  requirement    String
+  validationType String
+  configuration  Json?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  rule              Rule               @relation(fields: [ruleId], references: [id], onDelete: Restrict)
+  validationResults ValidationResult[]
+
+  @@unique([ruleId, version])
+  @@index([ruleId])
+  @@index([effectiveFrom])
+  @@map("rule_versions")
+}
+
+// ==========================================
+// 6. VALIDATION RESULTS & VIOLATIONS
+// ==========================================
+
+model ValidationResult {
+  id            String           @id @default(uuid())
+  inspectionId  String
+  ruleVersionId String
+  status        ValidationStatus
+  message       String
+  confidence    Float?
+  evaluatedAt   DateTime         @default(now())
+
+  inspection  Inspection  @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  ruleVersion RuleVersion @relation(fields: [ruleVersionId], references: [id], onDelete: Restrict)
+  violations  Violation[]
+
+  @@index([inspectionId])
+  @@index([ruleVersionId])
+  @@index([status])
+  @@map("validation_results")
+}
+
+model Violation {
+  id                 String            @id @default(uuid())
+  inspectionId       String
+  validationResultId String
+  code               String
+  severity           ViolationSeverity @default(MEDIUM)
+  title              String
+  description        String
+  status             ViolationStatus   @default(OPEN)
+  createdAt          DateTime          @default(now())
+  resolvedAt         DateTime?
+
+  inspection       Inspection       @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  validationResult ValidationResult @relation(fields: [validationResultId], references: [id], onDelete: Restrict)
+  evidences        Evidence[]
+
+  @@index([inspectionId])
+  @@index([validationResultId])
+  @@index([status])
+  @@map("violations")
+}
+
+model Evidence {
+  id          String       @id @default(uuid())
+  violationId String
+  type        EvidenceType
+  referenceId String?
+  metadata    Json?
+  createdAt   DateTime     @default(now())
+
+  violation Violation @relation(fields: [violationId], references: [id], onDelete: Cascade)
+
+  @@index([violationId])
+  @@map("evidences")
+}
+
+// ==========================================
+// 7. REPORTS & AUDIT LOGGING
+// ==========================================
+
+model Report {
+  id           String     @id @default(uuid())
+  inspectionId String
+  fileUrl      String
+  storageKey   String
+  reportType   ReportType @default(FULL_COMPLIANCE)
+  generatedBy  String
+  generatedAt  DateTime   @default(now())
+
+  inspection Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  generator  User       @relation("UserReports", fields: [generatedBy], references: [id], onDelete: Restrict)
+
+  @@index([inspectionId])
+  @@index([generatedBy])
+  @@map("reports")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String
+  oldValue   Json?
+  newValue   Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation("UserAuditLogs", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

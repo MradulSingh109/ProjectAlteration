@@ -22,6 +22,7 @@ const envSchema = z.object({
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])
     .default('info'),
   CORS_ORIGIN: z.string().default('*'),
+  DATABASE_URL: z.string().default('postgresql://postgres:postgres@localhost:5432/sih26034_db?schema=public'),
 });
 
 const parseEnv = () => {

@@ -44,10 +44,11 @@ The system enables inspectors and users to upload photographs of packaged produc
 
 ## Technology Stack
 
-### Current (Step 1 Foundation)
+### Current (Step 1 Foundation & Step 2 Database)
 * **Runtime**: Node.js
 * **Language**: TypeScript
 * **Web Framework**: Express.js
+* **Database & ORM**: PostgreSQL & Prisma ORM (`@prisma/client`, `prisma`)
 * **Validation**: Zod
 * **Logging**: Pino & pino-pretty
 * **Security Foundation**: Helmet, CORS
@@ -55,11 +56,34 @@ The system enables inspectors and users to upload photographs of packaged produc
 * **Execution/Build**: tsx (development runner), tsc (production build)
 
 ### Planned Technologies (Future Steps)
-* **Database & ORM**: PostgreSQL, Prisma
 * **Asynchronous Queue & Jobs**: Redis, BullMQ
 * **File Storage**: Object Storage (S3 / Local Storage Abstraction)
 * **AI / OCR Integration**: OCR Interface (PaddleOCR / Google Vision / Custom CV models)
 * **PDF & Report Generation**: PDFKit / Puppeteer
+
+---
+
+## Database Management (Prisma)
+
+### Generate Prisma Client
+```bash
+npm run prisma:generate
+```
+
+### Apply Migrations
+```bash
+npm run prisma:migrate
+```
+
+### Seed Initial Database Data (Roles, Categories, Rules)
+```bash
+npm run prisma:seed
+```
+
+### Open Prisma Studio (GUI Database Management)
+```bash
+npm run prisma:studio
+```
 
 ---
 
@@ -68,6 +92,7 @@ The system enables inspectors and users to upload photographs of packaged produc
 ### Prerequisites
 * **Node.js**: v18.x or higher
 * **npm**: v9.x or higher
+* **PostgreSQL**: v14.x or higher
 
 ### Setup
 
@@ -81,13 +106,20 @@ The system enables inspectors and users to upload photographs of packaged produc
    cp .env.example .env
    ```
 
-3. Ensure `.env` is configured properly:
+3. Ensure `.env` is configured properly with your PostgreSQL connection string:
    ```env
    NODE_ENV=development
    PORT=5000
    API_PREFIX=/api
    LOG_LEVEL=info
    CORS_ORIGIN=*
+   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/sih26034_db?schema=public"
+   ```
+
+4. Generate Prisma client & seed database:
+   ```bash
+   npm run prisma:generate
+   npm run prisma:seed
    ```
 
 ---
@@ -141,8 +173,12 @@ Check application health status and environment configuration.
 
 ```text
 backend/
+├── prisma/
+│   ├── schema.prisma   # PostgreSQL Prisma schema (14 models & relations)
+│   └── seed.ts         # Initial roles, product categories & rule seeds
 ├── src/
 │   ├── config/
+│   │   ├── database.ts     # Centralized Prisma client singleton
 │   │   ├── env.ts          # Zod environment variable validation
 │   │   └── logger.ts       # Pino logger initialization
 │   ├── controllers/
@@ -161,6 +197,7 @@ backend/
 │   │   └── response.ts     # Standardized JSON response helpers
 │   ├── app.ts              # Express application setup
 │   └── server.ts           # Server bootstrap & graceful shutdown
+├── ER_DIAGRAM.md           # Mermaid ER diagram & database architecture guide
 ├── tests/                  # Test suites placeholder
 ├── .env                    # Local environment secrets (Git ignored)
 ├── .env.example            # Environment template
@@ -175,7 +212,7 @@ backend/
 ## Development Roadmap
 
 - [x] **Step 1 — Foundation & Architecture**: Express, TypeScript, Zod env, Pino logging, Helmet, CORS, Error handling, Health check
-- [ ] **Step 2 — Database**: PostgreSQL & Prisma setup
+- [x] **Step 2 — Database**: PostgreSQL & Prisma schema, ER diagram, versioned rule engine, seed data
 - [ ] **Step 3 — Authentication**: User roles, JWT, Refresh Tokens
 - [ ] **Step 4 — Inspection Management**: Inspection creation and entity relations
 - [ ] **Step 5 — Image Upload & Storage**: Multi-part upload and storage provider abstraction
