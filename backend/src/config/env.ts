@@ -23,6 +23,11 @@ const envSchema = z.object({
     .default('info'),
   CORS_ORIGIN: z.string().default('*'),
   DATABASE_URL: z.string().default('postgresql://postgres:postgres@localhost:5432/sih26034_db?schema=public'),
+  JWT_SECRET: z
+    .string()
+    .min(16, 'JWT_SECRET must be at least 16 characters long')
+    .default('default-super-secret-jwt-key-sih26034-packaged-commodities-compliance-2026'),
+  JWT_EXPIRES_IN: z.string().default('1d'),
 });
 
 const parseEnv = () => {

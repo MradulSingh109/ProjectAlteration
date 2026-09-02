@@ -37,6 +37,10 @@ export class AppError extends Error {
     return new AppError(message, 404, errorCode);
   }
 
+  static conflict(message: string = 'Resource conflict', errorCode: string = 'CONFLICT', details?: unknown): AppError {
+    return new AppError(message, 409, errorCode, details);
+  }
+
   static internal(message: string = 'Internal server error', errorCode: string = 'INTERNAL_SERVER_ERROR'): AppError {
     return new AppError(message, 500, errorCode);
   }
