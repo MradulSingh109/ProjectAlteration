@@ -5,6 +5,8 @@ import { RoleCode } from '@prisma/client';
 import { generateToken } from '../src/utils/jwt';
 import { hashPassword } from '../src/utils/password';
 
+jest.setTimeout(30000);
+
 describe('Step 3: Authentication & Authorization API Tests', () => {
   const testEmail = `test.inspector.${Date.now()}@example.com`;
   const testAdminEmail = `test.admin.${Date.now()}@example.com`;

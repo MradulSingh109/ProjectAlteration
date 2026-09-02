@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import healthRoutes from './health.routes';
 import { authRoutes } from './auth.routes';
+import { productRoutes } from './product.routes';
+import { inspectionRoutes } from './inspection.routes';
 
 const router = Router();
 
@@ -9,5 +11,11 @@ router.use('/health', healthRoutes);
 
 // Mount auth routes under /auth
 router.use('/auth', authRoutes);
+
+// Mount product & category routes
+router.use('/', productRoutes);
+
+// Mount inspection routes under /inspections
+router.use('/inspections', inspectionRoutes);
 
 export default router;
