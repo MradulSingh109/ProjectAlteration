@@ -3,6 +3,7 @@ import healthRoutes from './health.routes';
 import { authRoutes } from './auth.routes';
 import { productRoutes } from './product.routes';
 import { inspectionRoutes } from './inspection.routes';
+import { inspectionImageRoutes } from './inspectionImage.routes';
 
 const router = Router();
 
@@ -17,5 +18,6 @@ router.use('/', productRoutes);
 
 // Mount inspection routes under /inspections
 router.use('/inspections', inspectionRoutes);
+router.use('/inspections', inspectionImageRoutes);
 
 export default router;

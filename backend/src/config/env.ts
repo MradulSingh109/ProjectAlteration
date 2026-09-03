@@ -28,6 +28,16 @@ const envSchema = z.object({
     .min(16, 'JWT_SECRET must be at least 16 characters long')
     .default('default-super-secret-jwt-key-sih26034-packaged-commodities-compliance-2026'),
   JWT_EXPIRES_IN: z.string().default('1d'),
+  SUPABASE_URL: z.string().default('https://mock.supabase.co'),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().default('mock-service-role-key'),
+  SUPABASE_STORAGE_BUCKET: z.string().default('inspection-images'),
+  MAX_FILE_SIZE_MB: z
+    .string()
+    .default('10')
+    .transform((val) => parseInt(val, 10))
+    .refine((val) => !isNaN(val) && val > 0 && val <= 100, {
+      message: 'MAX_FILE_SIZE_MB must be between 1 and 100',
+    }),
 });
 
 const parseEnv = () => {

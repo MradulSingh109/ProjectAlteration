@@ -35,8 +35,8 @@ The system enables inspectors and users to upload photographs of packaged produc
       |                                   |    |                                     |
       v                                   v    v                                     v
 +-----+------+                   +--------+----+----+                          +-----+-----+
-|  PostgreSQL|                   |   OCR/AI Engine   |                          |   Redis   |
-| (via Prisma)                   | (PaddleOCR/Vision)|                          | / BullMQ  |
+|  PostgreSQL|                   |   OCR/AI Engine   |                          | Supabase  |
+| (via Prisma)                   | (PaddleOCR/Vision)|                          |  Storage  |
 +------------+                   +------------------+                          +-----------+
 ```
 
@@ -73,18 +73,19 @@ The system enables inspectors and users to upload photographs of packaged produc
 
 ## Technology Stack
 
-### Current (Step 1 Foundation, Step 2 Database, Step 3 Auth, Step 4 Inspection Management)
+### Current (Step 1 Foundation, Step 2 Database, Step 3 Auth, Step 4 Inspection Management, Step 5 Image Upload & Storage)
 * **Runtime**: Node.js
 * **Language**: TypeScript
 * **Web Framework**: Express.js
 * **Database & ORM**: PostgreSQL & Prisma ORM (`@prisma/client` locked to `6.19.3`)
 * **Security & Auth**: JWT (`jsonwebtoken`), Password Hashing (`bcryptjs`), RBAC (`ADMIN`, `INSPECTOR`, `REVIEWER`)
+* **File Upload & Storage**: Multer memory-storage (`multer`), Supabase Storage SDK (`@supabase/supabase-js`), Magic bytes file signature verification
 * **Validation**: Zod
 * **Logging**: Pino & pino-pretty
 * **Security Foundation**: Helmet, CORS
 * **Environment Configuration**: dotenv with Zod validation
 * **Execution/Build**: tsx (development runner), tsc (production build)
-* **Testing**: Jest (`ts-jest`), Supertest (100% automated test coverage)
+* **Testing**: Jest (`ts-jest`), Supertest (100% automated test coverage across 57 tests)
 
 ---
 
@@ -115,6 +116,15 @@ The system enables inspectors and users to upload photographs of packaged produc
 * `PATCH /api/inspections/:id/status` — Transition workflow status (`ADMIN`, `INSPECTOR`).
   * Validates state machine rules and sets `completedAt` timestamp upon completion.
 
+### 4. Image Upload & Storage (`/api/inspections/:id/images`)
+* `POST /api/inspections/:id/images` — Upload product package image (`ADMIN`, `INSPECTOR`).
+  * Validates binary signature (magic bytes) for JPEG, PNG, and WebP formats.
+  * Stores object in Supabase Storage (`inspections/{inspectionId}/{uuid}.{ext}`) and metadata in PostgreSQL.
+  * Rejected if inspection is in `COMPLETED` or `CANCELLED` state.
+* `GET /api/inspections/:id/images` — List all images attached to an inspection (`ADMIN`, `INSPECTOR` own, `REVIEWER`).
+* `GET /api/inspections/:id/images/:imageId` — Retrieve metadata and accessible URL for a single image with IDOR cross-inspection verification (`ADMIN`, `INSPECTOR` own, `REVIEWER`).
+* `DELETE /api/inspections/:id/images/:imageId` — Delete image record and remove object from storage (`ADMIN`, `INSPECTOR` own).
+
 ---
 
 ## Role-Based Access Control (RBAC) Matrix
@@ -133,6 +143,10 @@ The system enables inspectors and users to upload photographs of packaged produc
 | `/api/inspections/:id` | GET | All | Own Only | All |
 | `/api/inspections/:id` | PATCH | Yes | Own Only | No |
 | `/api/inspections/:id/status` | PATCH | Yes | Own Only | No |
+| `/api/inspections/:id/images` | POST | Yes | Own Only | No |
+| `/api/inspections/:id/images` | GET | All | Own Only | All |
+| `/api/inspections/:id/images/:imageId` | GET | All | Own Only | All |
+| `/api/inspections/:id/images/:imageId` | DELETE | Yes | Own Only | No |
 
 ---
 
@@ -155,7 +169,7 @@ The system enables inspectors and users to upload photographs of packaged produc
    cp .env.example .env
    ```
 
-3. Ensure `.env` is configured properly with your PostgreSQL connection string & JWT secret:
+3. Ensure `.env` is configured properly with your PostgreSQL connection string, JWT secret & Supabase Storage credentials:
    ```env
    NODE_ENV=development
    PORT=5000
@@ -165,6 +179,10 @@ The system enables inspectors and users to upload photographs of packaged produc
    DATABASE_URL="postgresql://postgres:postgres@localhost:5432/sih26034_db?schema=public"
    JWT_SECRET="your-super-secret-key-32-chars-minimum"
    JWT_EXPIRES_IN="7d"
+   SUPABASE_URL="https://your-project.supabase.co"
+   SUPABASE_SERVICE_ROLE_KEY="your-supabase-service-role-key"
+   SUPABASE_STORAGE_BUCKET="inspection-images"
+   MAX_FILE_SIZE_MB=10
    ```
 
 4. Generate Prisma client:
@@ -202,7 +220,7 @@ npm run build
 - [x] **Step 2 — Database**: PostgreSQL & Prisma schema, ER diagram, versioned rule engine, seed data
 - [x] **Step 3 — Authentication**: User roles, JWT, bcrypt password hashing, RBAC middleware (`ADMIN`, `INSPECTOR`, `REVIEWER`)
 - [x] **Step 4 — Inspection Management**: Server-generated inspection numbers (`INS-YYYYMMDD-XXXXXXXX`), state machine workflow, ownership scoping, product lookups, audit logging
-- [ ] **Step 5 — Image Upload & Storage**: Multi-part upload and storage provider abstraction
+- [x] **Step 5 — Image Upload & Storage**: Multi-part upload, Supabase Storage abstraction, magic bytes validation, IDOR protection, workflow status checks, audit logging
 - [ ] **Step 6 — OCR Integration**: OCR provider interface and integration
 - [ ] **Step 7 — Declaration Extraction**: Extracting mandatory packaging attributes
 - [ ] **Step 8 — Rule Engine**: Configurable, versioned Legal Metrology rule validation
