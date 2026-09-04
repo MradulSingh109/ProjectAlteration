@@ -79,8 +79,32 @@ export class AppError extends Error {
   }
 
   static inspectionNotEditable(
-    message: string = 'Cannot extract declarations for an inspection in COMPLETED or CANCELLED status'
+    message: string = 'Cannot perform operation on an inspection in COMPLETED or CANCELLED status'
   ): AppError {
     return new AppError(message, 400, 'INSPECTION_NOT_EDITABLE');
+  }
+
+  static noApplicableRules(
+    message: string = 'No applicable rules found for this inspection date and category'
+  ): AppError {
+    return new AppError(message, 400, 'NO_APPLICABLE_RULES');
+  }
+
+  static validationNotAllowed(
+    message: string = 'Compliance evaluation is not allowed for this inspection state'
+  ): AppError {
+    return new AppError(message, 400, 'VALIDATION_NOT_ALLOWED');
+  }
+
+  static validationResultNotFound(
+    message: string = 'Validation result not found'
+  ): AppError {
+    return new AppError(message, 404, 'VALIDATION_RESULT_NOT_FOUND');
+  }
+
+  static violationNotFound(
+    message: string = 'Violation record not found'
+  ): AppError {
+    return new AppError(message, 404, 'VIOLATION_NOT_FOUND');
   }
 }

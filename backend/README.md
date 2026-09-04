@@ -312,6 +312,61 @@ Prisma $transaction
 
 ---
 
+## Step 8 — Compliance Rule Engine & Validation
+
+Step 8 evaluates extracted commodity declarations against database-driven versioned Legal Metrology rules (`Rule`, `RuleVersion`, `RuleVersionCategory`), creating `ValidationResult` and `Violation` records with evidence links and calculating overall `ComplianceStatus` (`PASS` / `FAIL` / `REVIEW`).
+
+### Rule Engine Architecture
+
+```text
+Inspection (ProductId, InspectedAt)
+   |
+   v
+RuleSelectorService (Version-aware query)
+   |---> Select active RuleVersions matching product category & inspectedAt timestamp
+   |---> Pick highest version per rule
+   |
+   v
+RuleEvaluatorService (Deterministic Checks)
+   |---> EXISTS_AND_NON_ZERO / PRESENCE (MRP, NetQty, Contact)
+   |---> STANDARD_UNIT_MATCH (g, kg, l, ml, pcs)
+   |---> DATE_FORMAT_MATCH / DATE_VALIDATION
+   |---> NUMERIC_COMPARISON / PATTERN_MATCH
+   |
+   v
+Compliance Status Aggregator
+   |---> If any FAIL -> Overall FAIL
+   |---> Else if any REVIEW -> Overall REVIEW
+   |---> Else -> Overall PASS
+   |
+   v
+Prisma $transaction
+   |---> Overwrite prior ValidationResults & Violations atomically
+   |---> Persist ValidationResults & Violations with linked Evidences
+   |---> Update Inspection.complianceStatus
+   |---> AuditLog: COMPLIANCE_VALIDATION_COMPLETED
+```
+
+### Key Compliance Endpoints
+
+| Method | Endpoint | Description | Roles Allowed |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/inspections/:id/validate` | Trigger/re-trigger compliance rule evaluation | `ADMIN`, `INSPECTOR` (own) |
+| `GET` | `/api/inspections/:id/validation-results` | Get detailed validation results | `ADMIN`, `INSPECTOR` (own), `REVIEWER` |
+| `GET` | `/api/inspections/:id/violations` | Get list of violations with evidence details | `ADMIN`, `INSPECTOR` (own), `REVIEWER` |
+| `GET` | `/api/inspections/:id/compliance` | Get overall compliance summary & counts | `ADMIN`, `INSPECTOR` (own), `REVIEWER` |
+
+### Key Guarantees & Constraints
+
+1. **Database-Driven Rules**: Evaluates declarations against rules configured in PostgreSQL (`Rule`, `RuleVersion`), not hardcoded legal semantics.
+2. **Version Precedence**: Selects the highest rule version effective on the inspection date (`effectiveFrom <= inspectedAt`).
+3. **Atomic Re-Evaluation**: Uses a Prisma `$transaction` to replace historical validation results and violations for an inspection without dangling references or duplicates.
+4. **Workflow Restrictions**: Disallows compliance evaluation on `CANCELLED` inspections (`VALIDATION_NOT_ALLOWED` 400).
+5. **RBAC & IDOR Protection**: `REVIEWER` role has read-only access and cannot trigger evaluation (`403 FORBIDDEN`). Inspectors can only validate/view their own inspections.
+6. **Zero Prisma Schema Alterations**: 0 schema changes, 0 migrations required.
+
+---
+
 ## Getting Started & Setup
 
 ### Prerequisites
@@ -392,7 +447,7 @@ npm run build
 - [x] **Step 6A — Backend OCR Integration Layer**: Provider abstraction (`MockOcrProvider`, `HttpOcrProvider`), `OCRResult` database lifecycle, Zod external response validation, `AbortController` timeouts, audit logging, 100% test coverage across 78 tests
 - [x] **Step 6B — OCR Result Processing, Normalization & Persistence**: `OcrNormalizationService`, Zod schema validation (`ocrResultValidationSchema`), confidence normalization (0..100 -> 0..1), bounding box geometry checks, metadata sanitization, error codes (`OCR_INVALID_OUTPUT`, `OCR_INVALID_TEXT`, `OCR_INVALID_CONFIDENCE`, `OCR_INVALID_BOUNDING_BOXES`), zero Prisma schema modifications, full historical provenance, 82/82 tests passing
 - [x] **Step 7 — OCR Attribute Extraction & Declaration Processing**: `DeclarationExtractionService`, deterministic `DeclarationParser` engine (`MRP`, `NET_QUANTITY`, `MFG_DATE`, `EXP_DATE`, `CONSUMER_CARE`, `COUNTRY_OF_ORIGIN`, `COMMODITY_NAME`, `MFG_ADDRESS`, `IMPORTER_DETAILS`), evidence/image provenance linking, idempotency on re-extraction, RBAC enforcement, zero database schema changes/migrations, 95/95 tests passing
-- [ ] **Step 8 — Rule Engine**: Configurable, versioned Legal Metrology rule validation
+- [x] **Step 8 — Compliance Rule Engine & Validation**: Deterministic rule evaluation engine (`RuleEngineService`, `RuleSelectorService`, `RuleEvaluatorService`, `ViolationService`), version-aware rule selection, category mapping, `ValidationResult` & `Violation` persistence, evidence provenance linking, overall `ComplianceStatus` calculation (`PASS` / `FAIL` / `REVIEW`), atomic re-evaluation transaction, RBAC & IDOR protection, 109/109 tests passing across all 6 test suites
 - [ ] **Step 9 — Compliance Results**: Evidence scoring and PASS / FAIL / REVIEW outcomes
 - [ ] **Step 10 — Human Review**: Manual override and audit trail history
 - [ ] **Step 11 — Reports**: PDF compliance report generation
