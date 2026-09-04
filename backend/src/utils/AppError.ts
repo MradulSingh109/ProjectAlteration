@@ -107,4 +107,22 @@ export class AppError extends Error {
   ): AppError {
     return new AppError(message, 404, 'VIOLATION_NOT_FOUND');
   }
+
+  static invalidViolationStatusTransition(
+    message: string = 'Invalid violation status transition'
+  ): AppError {
+    return new AppError(message, 400, 'INVALID_VIOLATION_STATUS_TRANSITION');
+  }
+
+  static unresolvedViolationsRemain(
+    message: string = 'Cannot complete inspection review while open violations remain unresolved'
+  ): AppError {
+    return new AppError(message, 400, 'UNRESOLVED_VIOLATIONS');
+  }
+
+  static invalidWorkflowState(
+    message: string = 'Operation is not permitted for the current inspection workflow state'
+  ): AppError {
+    return new AppError(message, 400, 'INVALID_WORKFLOW_STATE');
+  }
 }

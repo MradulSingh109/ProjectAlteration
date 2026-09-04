@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { RuleEngineService } from '../services/compliance/ruleEngine.service';
+import { ReviewController } from './review.controller';
 import { AuthUser } from '../types/express';
 
 export class ComplianceController {
@@ -55,25 +56,10 @@ export class ComplianceController {
 
   /**
    * GET /api/inspections/:id/violations
-   * Retrieves all violations for an inspection
+   * Retrieves violations for an inspection with pagination and status/severity filtering
    */
   static async getViolations(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const inspectionId = req.params.id as string;
-      const user = req.user as AuthUser;
-
-      const violations = await RuleEngineService.getViolationsByInspection(inspectionId, user);
-
-      res.status(200).json({
-        success: true,
-        data: violations,
-        meta: {
-          count: violations.length,
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
+    return ReviewController.listViolations(req, res, next);
   }
 
   /**

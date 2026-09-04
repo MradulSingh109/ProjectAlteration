@@ -367,6 +367,51 @@ Prisma $transaction
 
 ---
 
+## Step 9 — Violation Management & Human Review Workflow
+
+Step 9 implements the human-in-the-loop review workflow, allowing `ADMIN` and `REVIEWER` users to manage detected `Violation` statuses (`OPEN`, `CONFIRMED`, `DISMISSED`, `RESOLVED`), query validation results, and complete formal inspection reviews.
+
+### Review Workflow State Machine & Logic Architecture
+
+```text
+                                  +-----------------------+
+                                  |     UNDER_REVIEW      |
+                                  +-----------+-----------+
+                                              |
+                   +--------------------------+--------------------------+
+                   |                          |                          |
+        (APPROVE - No Open Vio)           (REJECT)               (REQUEST_CHANGES)
+                   v                          v                          v
+        +----------+----------+    +----------+----------+    +----------+----------+
+        |      COMPLETED      |    |      CANCELLED      |    |        DRAFT        |
+        | (Compliance status  |    | (Compliance status  |    | (Returned for fixes |
+        |  PASS or FAIL)      |    |  FAIL)              |    |  by inspector)      |
+        +---------------------+    +---------------------+    +---------------------+
+```
+
+### Key Violation & Review Endpoints
+
+| Method | Endpoint | Description | Roles Allowed |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/inspections/:id/violations` | Query violations with pagination, status & severity filters | `ADMIN`, `INSPECTOR` (own), `REVIEWER` |
+| `GET` | `/api/inspections/:id/violations/:violationId` | Retrieve single violation record with evidence details | `ADMIN`, `INSPECTOR` (own), `REVIEWER` |
+| `PATCH` | `/api/inspections/:id/violations/:violationId/status` | Transition violation status (`OPEN` -> `CONFIRMED`, `RESOLVED`, `DISMISSED`) | `ADMIN`, `REVIEWER` |
+| `GET` | `/api/inspections/:id/validation-results` | Query validation results for inspection | `ADMIN`, `INSPECTOR` (own), `REVIEWER` |
+| `GET` | `/api/inspections/:id/validation-results/:validationResultId` | Retrieve single validation result with rule & violations | `ADMIN`, `INSPECTOR` (own), `REVIEWER` |
+| `POST` | `/api/inspections/:id/review` | Submit human inspection review decision (`APPROVE`, `REJECT`, `REQUEST_CHANGES`) | `ADMIN`, `REVIEWER` |
+
+### Key Guarantees & Validation Rules
+
+1. **Controlled Violation Lifecycle**: Restricts status transitions (`OPEN` -> `CONFIRMED` | `DISMISSED` | `RESOLVED`). Prevents invalid same-status or regression transitions (`INVALID_VIOLATION_STATUS_TRANSITION` 400).
+2. **Unresolved Violation Protection**: Inspection approval (`APPROVE`) is strictly rejected if any open violations (`status === OPEN`) remain (`UNRESOLVED_VIOLATIONS` 400).
+3. **Workflow State Protection**: Human review can only be completed for inspections in `UNDER_REVIEW` status (`INVALID_WORKFLOW_STATE` 400). Completed inspections are immutable (`INSPECTION_NOT_EDITABLE` 400).
+4. **Automatic Compliance Status Recalculation**: Approving an inspection recalculates effective compliance status (`FAIL` if any confirmed violations exist, `PASS` if all violations are resolved/dismissed or 0 violations).
+5. **Strict Ownership Scoping & RBAC**: Inspectors can only view violations/results for their own created inspections. Inspectors are forbidden from updating violation statuses or completing reviews (`403 FORBIDDEN`).
+6. **Comprehensive Audit Trails**: All violation status changes (`VIOLATION_STATUS_CHANGED`) and inspection review decisions (`INSPECTION_REVIEW_COMPLETED`) are logged in `AuditLog` with old/new state diffs.
+7. **Zero Prisma Schema Alterations**: Reuses existing PostgreSQL tables (`Violation`, `ValidationResult`, `Inspection`, `AuditLog`) without database migrations.
+
+---
+
 ## Getting Started & Setup
 
 ### Prerequisites
@@ -448,8 +493,8 @@ npm run build
 - [x] **Step 6B — OCR Result Processing, Normalization & Persistence**: `OcrNormalizationService`, Zod schema validation (`ocrResultValidationSchema`), confidence normalization (0..100 -> 0..1), bounding box geometry checks, metadata sanitization, error codes (`OCR_INVALID_OUTPUT`, `OCR_INVALID_TEXT`, `OCR_INVALID_CONFIDENCE`, `OCR_INVALID_BOUNDING_BOXES`), zero Prisma schema modifications, full historical provenance, 82/82 tests passing
 - [x] **Step 7 — OCR Attribute Extraction & Declaration Processing**: `DeclarationExtractionService`, deterministic `DeclarationParser` engine (`MRP`, `NET_QUANTITY`, `MFG_DATE`, `EXP_DATE`, `CONSUMER_CARE`, `COUNTRY_OF_ORIGIN`, `COMMODITY_NAME`, `MFG_ADDRESS`, `IMPORTER_DETAILS`), evidence/image provenance linking, idempotency on re-extraction, RBAC enforcement, zero database schema changes/migrations, 95/95 tests passing
 - [x] **Step 8 — Compliance Rule Engine & Validation**: Deterministic rule evaluation engine (`RuleEngineService`, `RuleSelectorService`, `RuleEvaluatorService`, `ViolationService`), version-aware rule selection, category mapping, `ValidationResult` & `Violation` persistence, evidence provenance linking, overall `ComplianceStatus` calculation (`PASS` / `FAIL` / `REVIEW`), atomic re-evaluation transaction, RBAC & IDOR protection, 109/109 tests passing across all 6 test suites
-- [ ] **Step 9 — Compliance Results**: Evidence scoring and PASS / FAIL / REVIEW outcomes
-- [ ] **Step 10 — Human Review**: Manual override and audit trail history
+- [x] **Step 9 — Violation Management & Human Review Workflow**: `ViolationReviewService`, `InspectionReviewService`, paginated violation query API with status/severity filters, controlled status lifecycle (`OPEN` -> `CONFIRMED`, `DISMISSED`, `RESOLVED`), human review completion (`APPROVE`, `REJECT`, `REQUEST_CHANGES`), state machine transitions (`UNDER_REVIEW` -> `COMPLETED`, `CANCELLED`, `DRAFT`), automatic compliance status recalculation, RBAC enforcement (`ADMIN`, `REVIEWER`), IDOR protection, comprehensive audit trails, zero database migrations, 130/130 tests passing across all 7 test suites
+- [ ] **Step 10 — Human Review & Manual Overrides**: Manual declaration override and audit trail history
 - [ ] **Step 11 — Reports**: PDF compliance report generation
 - [ ] **Step 12 — Dashboard & Analytics**: Summary metrics and statistics
 - [ ] **Step 13 — Testing & Security**: Integration tests, rate limiting, security hardening
