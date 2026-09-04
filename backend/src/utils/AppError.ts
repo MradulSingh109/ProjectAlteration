@@ -60,4 +60,27 @@ export class AppError extends Error {
   static ocrInvalidBoundingBoxes(message: string, details?: unknown): AppError {
     return new AppError(message, 502, 'OCR_INVALID_BOUNDING_BOXES', details);
   }
+
+  static ocrResultNotSuccessful(
+    message: string = 'OCR result status must be SUCCESS before declarations can be extracted',
+    details?: unknown
+  ): AppError {
+    return new AppError(message, 400, 'OCR_RESULT_NOT_SUCCESSFUL', details);
+  }
+
+  static declarationNotFound(message: string = 'Declaration not found'): AppError {
+    return new AppError(message, 404, 'DECLARATION_NOT_FOUND');
+  }
+
+  static declarationInspectionMismatch(
+    message: string = 'Specified declaration does not belong to this inspection'
+  ): AppError {
+    return new AppError(message, 404, 'DECLARATION_INSPECTION_MISMATCH');
+  }
+
+  static inspectionNotEditable(
+    message: string = 'Cannot extract declarations for an inspection in COMPLETED or CANCELLED status'
+  ): AppError {
+    return new AppError(message, 400, 'INSPECTION_NOT_EDITABLE');
+  }
 }

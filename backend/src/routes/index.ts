@@ -5,6 +5,7 @@ import { productRoutes } from './product.routes';
 import { inspectionRoutes } from './inspection.routes';
 import { inspectionImageRoutes } from './inspectionImage.routes';
 import { ocrRoutes } from './ocr.routes';
+import { declarationRoutes } from './declaration.routes';
 
 const router = Router();
 
@@ -21,5 +22,6 @@ router.use('/', productRoutes);
 router.use('/inspections', inspectionRoutes);
 router.use('/inspections', inspectionImageRoutes);
 router.use('/inspections', ocrRoutes);
+router.use('/inspections', declarationRoutes);
 
 export default router;

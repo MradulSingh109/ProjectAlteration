@@ -263,6 +263,55 @@ OCRResult (PostgreSQL Provenance Record)
 
 ---
 
+## Step 7 — OCR Attribute Extraction & Declaration Processing
+
+Step 7 parses normalized OCR text into structured Legal Metrology package commodity declarations (`Declaration` records) without running rule compliance evaluations (which belong to Step 8).
+
+### Extraction Pipeline Architecture
+
+```text
+OCRResult (rawText)
+   |
+   v
+DeclarationParser (Deterministic Extractor Engine)
+   |
+   +---> MRP (e.g. ₹499.00, Rs. 250) -> normalized JSON { value: 499, currency: "INR" }
+   +---> NET_QUANTITY (e.g. 500 g, 1 L) -> normalized JSON { value: 500, unit: "g" }
+   +---> MFG_DATE (e.g. Mfg Date 06/2026) -> normalized JSON { dateText: "06/2026" }
+   +---> EXP_DATE (e.g. Exp Date 06/2028) -> normalized JSON { dateText: "06/2028" }
+   +---> CONSUMER_CARE (e.g. Helpline / Email / Phone)
+   +---> COUNTRY_OF_ORIGIN (e.g. Made in / Country of Origin)
+   +---> COMMODITY_NAME (e.g. Commodity Name / Product Name)
+   +---> MFG_ADDRESS (e.g. Manufactured by / Packed by)
+   +---> IMPORTER_DETAILS (e.g. Imported by / Importer)
+   |
+   v
+Prisma $transaction
+   |
+   +---> Idempotency: Replaces previous unreviewed automated declarations for this image
+   +---> Declaration Records: Persisted in PostgreSQL linked to inspectionId & sourceImageId
+   +---> Audit Trail: Logs DECLARATION_EXTRACTION_COMPLETED event
+```
+
+### Key Declaration API Endpoints
+
+| Method | Endpoint | Description | Roles Allowed |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/inspections/:id/images/:imageId/ocr/:ocrResultId/extract` | Trigger declaration extraction | `ADMIN`, `INSPECTOR` (own) |
+| `POST` | `/api/inspections/:id/images/:imageId/ocr/:ocrResultId/reextract` | Re-trigger declaration extraction idempotently | `ADMIN`, `INSPECTOR` (own) |
+| `GET` | `/api/inspections/:id/declarations` | Retrieve all extracted declarations for inspection | `ADMIN`, `INSPECTOR` (own), `REVIEWER` |
+| `GET` | `/api/inspections/:id/declarations/:declarationId` | Retrieve single declaration by ID | `ADMIN`, `INSPECTOR` (own), `REVIEWER` |
+
+### Key Extraction Guarantees & Constraints
+
+1. **Non-Hallucination Guardrail**: The parser never invents or hallucinates missing attributes. Absent attributes remain `null`.
+2. **Provenance Traceability**: Declarations maintain foreign key linkages to both `inspectionId` and `sourceImageId`.
+3. **Idempotency & Re-extraction**: Re-triggering extraction replaces previous automated `OCR` declarations derived from the same source image without multiplying duplicate records.
+4. **Workflow State Restrictions**: Extraction is allowed only for inspections in `DRAFT` or `PROCESSING` state. Inspections in `COMPLETED` or `CANCELLED` state return `INSPECTION_NOT_EDITABLE` (400).
+5. **Zero Prisma Schema Alterations**: Uses existing `Declaration`, `DeclarationType`, `DeclarationSource`, and `Evidence` Prisma models without database migrations.
+
+---
+
 ## Getting Started & Setup
 
 ### Prerequisites
@@ -342,7 +391,7 @@ npm run build
 - [x] **Step 5 — Image Upload & Storage**: Multi-part upload, Supabase Storage abstraction, magic bytes validation, IDOR protection, workflow status checks, audit logging
 - [x] **Step 6A — Backend OCR Integration Layer**: Provider abstraction (`MockOcrProvider`, `HttpOcrProvider`), `OCRResult` database lifecycle, Zod external response validation, `AbortController` timeouts, audit logging, 100% test coverage across 78 tests
 - [x] **Step 6B — OCR Result Processing, Normalization & Persistence**: `OcrNormalizationService`, Zod schema validation (`ocrResultValidationSchema`), confidence normalization (0..100 -> 0..1), bounding box geometry checks, metadata sanitization, error codes (`OCR_INVALID_OUTPUT`, `OCR_INVALID_TEXT`, `OCR_INVALID_CONFIDENCE`, `OCR_INVALID_BOUNDING_BOXES`), zero Prisma schema modifications, full historical provenance, 82/82 tests passing
-- [ ] **Step 7 — Declaration Extraction**: Extracting mandatory packaging attributes
+- [x] **Step 7 — OCR Attribute Extraction & Declaration Processing**: `DeclarationExtractionService`, deterministic `DeclarationParser` engine (`MRP`, `NET_QUANTITY`, `MFG_DATE`, `EXP_DATE`, `CONSUMER_CARE`, `COUNTRY_OF_ORIGIN`, `COMMODITY_NAME`, `MFG_ADDRESS`, `IMPORTER_DETAILS`), evidence/image provenance linking, idempotency on re-extraction, RBAC enforcement, zero database schema changes/migrations, 95/95 tests passing
 - [ ] **Step 8 — Rule Engine**: Configurable, versioned Legal Metrology rule validation
 - [ ] **Step 9 — Compliance Results**: Evidence scoring and PASS / FAIL / REVIEW outcomes
 - [ ] **Step 10 — Human Review**: Manual override and audit trail history
