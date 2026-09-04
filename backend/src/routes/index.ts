@@ -8,6 +8,7 @@ import { ocrRoutes } from './ocr.routes';
 import { declarationRoutes } from './declaration.routes';
 import { complianceRoutes } from './compliance.routes';
 import { reviewRoutes } from './review.routes';
+import { inspectionReportRoutes, dashboardReportRoutes } from './report.routes';
 
 const router = Router();
 
@@ -27,5 +28,9 @@ router.use('/inspections', ocrRoutes);
 router.use('/inspections', declarationRoutes);
 router.use('/inspections', complianceRoutes);
 router.use('/inspections', reviewRoutes);
+router.use('/inspections', inspectionReportRoutes);
+
+// Mount dashboard report routes under /reports
+router.use('/reports', dashboardReportRoutes);
 
 export default router;

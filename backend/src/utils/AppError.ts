@@ -125,4 +125,8 @@ export class AppError extends Error {
   ): AppError {
     return new AppError(message, 400, 'INVALID_WORKFLOW_STATE');
   }
+
+  static reportNotFound(message: string = 'Report record not found'): AppError {
+    return new AppError(message, 404, 'REPORT_NOT_FOUND');
+  }
 }
