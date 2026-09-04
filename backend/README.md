@@ -229,6 +229,40 @@ Authorization: Bearer <OCR_SERVICE_API_KEY>
 
 ---
 
+## Step 6B — OCR Result Processing & Normalization
+
+The backend does **not** perform OCR inference. OCR inference is provided by an independent AI/ML microservice through the `IOcrProvider` abstraction.
+
+### Processing & Normalization Pipeline Architecture
+
+```text
+AI/ML OCR / MockProvider
+   |
+   v
+OcrOutput
+   |
+   v
+OcrNormalizationService & Zod Validation (ocrResultValidationSchema)
+   |
+   +---> Raw Text: Preserved exactly without spell-correction or attribute parsing
+   +---> Confidence: Standardized scale (0..100 -> 0..1, null handled cleanly)
+   +---> Bounding Boxes: Geometry validated (x, y, width, height >= 0)
+   +---> Metadata: Sanitized (sensitive auth keys/tokens stripped)
+   |
+   v
+OCRResult (PostgreSQL Provenance Record)
+```
+
+### Key Normalization Rules & Guarantees
+
+1. **Text Provenance**: `rawText` is preserved as an immutable evidence record. Attribute extraction (MRP, dates, net quantity, manufacturer) is deferred strictly to **Step 7**.
+2. **Confidence Scaling**: Standardized to a `0..1` floating point scale. Any provider output on a `0..100` scale is automatically converted (`val / 100`).
+3. **Bounding Box Geometry**: Validates non-negative coordinates (`x >= 0, y >= 0, width >= 0, height >= 0`). Rejects malformed bounding box inputs with code `OCR_INVALID_BOUNDING_BOXES` (502 Bad Gateway) and sets database status to `FAILED`.
+4. **Historical Provenance Preservation**: Every OCR run or reprocessing attempt creates a new `OCRResult` record in PostgreSQL without overwriting or deleting historical OCR records.
+5. **Zero Prisma Schema Alterations**: Reuses the existing PostgreSQL schema and `OCRResult` model without requiring migrations.
+
+---
+
 ## Getting Started & Setup
 
 ### Prerequisites
@@ -307,6 +341,7 @@ npm run build
 - [x] **Step 4 — Inspection Management**: Server-generated inspection numbers (`INS-YYYYMMDD-XXXXXXXX`), state machine workflow, ownership scoping, product lookups, audit logging
 - [x] **Step 5 — Image Upload & Storage**: Multi-part upload, Supabase Storage abstraction, magic bytes validation, IDOR protection, workflow status checks, audit logging
 - [x] **Step 6A — Backend OCR Integration Layer**: Provider abstraction (`MockOcrProvider`, `HttpOcrProvider`), `OCRResult` database lifecycle, Zod external response validation, `AbortController` timeouts, audit logging, 100% test coverage across 78 tests
+- [x] **Step 6B — OCR Result Processing, Normalization & Persistence**: `OcrNormalizationService`, Zod schema validation (`ocrResultValidationSchema`), confidence normalization (0..100 -> 0..1), bounding box geometry checks, metadata sanitization, error codes (`OCR_INVALID_OUTPUT`, `OCR_INVALID_TEXT`, `OCR_INVALID_CONFIDENCE`, `OCR_INVALID_BOUNDING_BOXES`), zero Prisma schema modifications, full historical provenance, 82/82 tests passing
 - [ ] **Step 7 — Declaration Extraction**: Extracting mandatory packaging attributes
 - [ ] **Step 8 — Rule Engine**: Configurable, versioned Legal Metrology rule validation
 - [ ] **Step 9 — Compliance Results**: Evidence scoring and PASS / FAIL / REVIEW outcomes

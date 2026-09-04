@@ -517,4 +517,150 @@ describe('Step 6A: Backend OCR Integration Layer API Tests', () => {
       fetchSpy.mockRestore();
     });
   });
+
+  describe('Step 6B: Normalization, Confidence Scaling & Bounding Box Validation', () => {
+    const originalProvider = env.OCR_PROVIDER;
+    const originalUrl = env.OCR_SERVICE_URL;
+
+    beforeAll(() => {
+      (env as any).OCR_PROVIDER = 'http';
+      (env as any).OCR_SERVICE_URL = 'https://mock-ai-ocr-service.internal/ocr';
+    });
+
+    afterAll(() => {
+      (env as any).OCR_PROVIDER = originalProvider;
+      (env as any).OCR_SERVICE_URL = originalUrl;
+    });
+
+    it('should normalize 0..100 confidence scale to 0..1 scale (e.g. 95.5 -> 0.955)', async () => {
+      const fetchSpy = jest.spyOn(global, 'fetch').mockImplementationOnce(() => {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () =>
+            Promise.resolve({
+              rawText: 'MRP Rs 150',
+              confidence: 95.5, // scale 0-100
+              language: 'en',
+              provider: 'scale-test-ocr',
+            }),
+        } as Response);
+      });
+
+      const res = await request(app)
+        .post(`/api/inspections/${inspection2Id}/images/${image2Id}/ocr`)
+        .set('Authorization', `Bearer ${inspector2Token}`);
+
+      expect(res.status).toBe(201);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.confidence).toBe(0.955);
+
+      fetchSpy.mockRestore();
+    });
+
+    it('should reject invalid confidence > 100 with OCR_INVALID_CONFIDENCE and mark status FAILED', async () => {
+      const fetchSpy = jest.spyOn(global, 'fetch').mockImplementationOnce(() => {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () =>
+            Promise.resolve({
+              rawText: 'Test text',
+              confidence: 250, // invalid out of bounds
+              language: 'en',
+              provider: 'invalid-conf-ocr',
+            }),
+        } as Response);
+      });
+
+      const res = await request(app)
+        .post(`/api/inspections/${inspection2Id}/images/${image2Id}/ocr`)
+        .set('Authorization', `Bearer ${inspector2Token}`);
+
+      expect(res.status).toBe(502);
+      expect(res.body.error.code).toBe('OCR_INVALID_CONFIDENCE');
+
+      const dbOcr = await prisma.oCRResult.findFirst({
+        where: { inspectionImageId: image2Id },
+        orderBy: { createdAt: 'desc' },
+      });
+      expect(dbOcr?.processingStatus).toBe('FAILED');
+
+      fetchSpy.mockRestore();
+    });
+
+    it('should reject negative bounding box coordinates with OCR_INVALID_BOUNDING_BOXES and mark status FAILED', async () => {
+      const fetchSpy = jest.spyOn(global, 'fetch').mockImplementationOnce(() => {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () =>
+            Promise.resolve({
+              rawText: 'Test text',
+              confidence: 0.9,
+              language: 'en',
+              provider: 'negative-bb-ocr',
+              boundingBoxes: [
+                { text: 'MRP', x: -10, y: 20, width: 50, height: 30 }, // invalid x < 0
+              ],
+            }),
+        } as Response);
+      });
+
+      const res = await request(app)
+        .post(`/api/inspections/${inspection2Id}/images/${image2Id}/ocr`)
+        .set('Authorization', `Bearer ${inspector2Token}`);
+
+      expect(res.status).toBe(502);
+      expect(res.body.error.code).toBe('OCR_INVALID_BOUNDING_BOXES');
+
+      const dbOcr = await prisma.oCRResult.findFirst({
+        where: { inspectionImageId: image2Id },
+        orderBy: { createdAt: 'desc' },
+      });
+      expect(dbOcr?.processingStatus).toBe('FAILED');
+
+      fetchSpy.mockRestore();
+    });
+
+    it('should sanitize metadata to strip secret token keys', async () => {
+      const fetchSpy = jest.spyOn(global, 'fetch').mockImplementationOnce(() => {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () =>
+            Promise.resolve({
+              rawText: 'Clean text',
+              confidence: 0.88,
+              language: 'en',
+              provider: 'sanitize-test-ocr',
+              metadata: {
+                model: 'v1.2',
+                authorization: 'Bearer super-secret-token', // sensitive key to strip
+                authToken: 'secret-123',
+                device: 'gpu-0',
+              },
+            }),
+        } as Response);
+      });
+
+      const res = await request(app)
+        .post(`/api/inspections/${inspection2Id}/images/${image2Id}/ocr`)
+        .set('Authorization', `Bearer ${inspector2Token}`);
+
+      expect(res.status).toBe(201);
+      expect(res.body.success).toBe(true);
+
+      const dbOcr = await prisma.oCRResult.findFirst({
+        where: { inspectionImageId: image2Id },
+        orderBy: { createdAt: 'desc' },
+      });
+      expect(dbOcr?.processingStatus).toBe('SUCCESS');
+
+      // Verify metadata in DB does NOT contain sensitive keys
+      expect(JSON.stringify(dbOcr)).not.toContain('super-secret-token');
+
+      fetchSpy.mockRestore();
+    });
+  });
 });

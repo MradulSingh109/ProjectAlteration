@@ -44,4 +44,20 @@ export class AppError extends Error {
   static internal(message: string = 'Internal server error', errorCode: string = 'INTERNAL_SERVER_ERROR'): AppError {
     return new AppError(message, 500, errorCode);
   }
+
+  static ocrInvalidOutput(message: string, details?: unknown): AppError {
+    return new AppError(message, 502, 'OCR_INVALID_OUTPUT', details);
+  }
+
+  static ocrInvalidText(message: string, details?: unknown): AppError {
+    return new AppError(message, 502, 'OCR_INVALID_TEXT', details);
+  }
+
+  static ocrInvalidConfidence(message: string, details?: unknown): AppError {
+    return new AppError(message, 502, 'OCR_INVALID_CONFIDENCE', details);
+  }
+
+  static ocrInvalidBoundingBoxes(message: string, details?: unknown): AppError {
+    return new AppError(message, 502, 'OCR_INVALID_BOUNDING_BOXES', details);
+  }
 }

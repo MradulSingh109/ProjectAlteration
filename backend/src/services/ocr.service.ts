@@ -7,6 +7,7 @@ import { AuthUser } from '../types/express';
 import { IOcrProvider } from '../types/ocr.types';
 import { MockOcrProvider } from './providers/mockOcr.provider';
 import { HttpOcrProvider } from './providers/httpOcr.provider';
+import { OcrNormalizationService } from './ocrNormalization.service';
 import { storageService } from './storage.service';
 import { AuditService } from './audit.service';
 
@@ -127,11 +128,11 @@ export class OcrService {
     // 7. Obtain image access URL from storage service
     const imageUrl = await storageService.getUrl(image.storageKey);
 
-    // 8. Invoke Provider Execution
+    // 8. Invoke Provider Execution & Normalization
     const provider = this.getProvider();
 
     try {
-      const ocrOutput = await provider.processImage({
+      const rawOcrOutput = await provider.processImage({
         inspectionId,
         inspectionImageId: imageId,
         storageKey: image.storageKey,
@@ -139,16 +140,19 @@ export class OcrService {
         mimeType: image.mimeType,
       });
 
+      // Normalize & Validate OCR Output
+      const normalized = OcrNormalizationService.normalize(rawOcrOutput);
+
       // 9. Update OCRResult on SUCCESS
       const updatedOcrRecord = await prisma.oCRResult.update({
         where: { id: ocrRecord.id },
         data: {
           processingStatus: OCRProcessingStatus.SUCCESS,
-          rawText: ocrOutput.rawText,
-          confidence: ocrOutput.confidence ?? 0.0,
-          language: ocrOutput.language || 'en',
-          provider: ocrOutput.provider,
-          boundingBoxes: ocrOutput.boundingBoxes ? (ocrOutput.boundingBoxes as any) : undefined,
+          rawText: normalized.rawText,
+          confidence: normalized.dbConfidence,
+          language: normalized.language,
+          provider: normalized.provider,
+          boundingBoxes: normalized.boundingBoxes ? (normalized.boundingBoxes as any) : undefined,
         },
       });
 

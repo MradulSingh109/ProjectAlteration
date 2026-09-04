@@ -15,8 +15,6 @@ export const ocrBoundingBoxSchema = z.object({
   text: z.string(),
   confidence: z
     .number()
-    .min(0)
-    .max(1)
     .nullable()
     .optional()
     .transform((val) => (val === null ? undefined : val)),
@@ -34,7 +32,7 @@ export const ocrExternalResponseSchema = z.object({
   rawText: z.string({
     required_error: 'rawText is required in OCR response',
   }),
-  confidence: z.number().min(0).max(1).nullable().default(null),
+  confidence: z.number().nullable().default(null),
   language: z.string().nullable().default('en'),
   provider: z.string().min(1).default('external-http-ocr'),
   processingTimeMs: z.number().positive().optional(),
