@@ -238,6 +238,17 @@ describe('Step 3: Authentication & Authorization API Tests', () => {
       expect(res.body.success).toBe(false);
       expect(res.body.error.code).toBe('INVALID_TOKEN');
     });
+
+    it('should reject request with token containing invalid user ID sub format', async () => {
+      const invalidSubToken = generateToken({ sub: 'non-uuid-user-id', role: RoleCode.INSPECTOR });
+      const res = await request(app)
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${invalidSubToken}`);
+
+      expect(res.status).toBe(401);
+      expect(res.body.success).toBe(false);
+      expect(res.body.error.code).toBe('INVALID_TOKEN');
+    });
   });
 
   describe('RBAC Middleware Authorization', () => {

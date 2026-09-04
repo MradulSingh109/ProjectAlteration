@@ -125,6 +125,16 @@ The system enables inspectors and users to upload photographs of packaged produc
 * `GET /api/inspections/:id/images/:imageId` — Retrieve metadata and accessible URL for a single image with IDOR cross-inspection verification (`ADMIN`, `INSPECTOR` own, `REVIEWER`).
 * `DELETE /api/inspections/:id/images/:imageId` — Delete image record and remove object from storage (`ADMIN`, `INSPECTOR` own).
 
+### 5. OCR Integration Infrastructure (`/api/inspections/:id/images/:imageId/ocr`)
+* `POST /api/inspections/:id/images/:imageId/ocr` — Trigger OCR processing for a specific package image (`ADMIN`, `INSPECTOR` own).
+  * Executes OCR pipeline via configured provider (`MockOcrProvider` or `HttpOcrProvider`).
+  * Enforces state machine workflow rules (only `DRAFT` or `PROCESSING` allowed).
+  * Prevents duplicate concurrent requests via pending database lock.
+  * Records `OCRResult` database record with processing status (`PENDING` -> `SUCCESS` or `FAILED`).
+* `GET /api/inspections/:id/images/:imageId/ocr` — Retrieve all historical OCR results for an image (`ADMIN`, `INSPECTOR` own, `REVIEWER`).
+* `GET /api/inspections/:id/images/:imageId/ocr/status` — Get current OCR processing status (`NOT_STARTED`, `PENDING`, `SUCCESS`, `FAILED`).
+* `POST /api/inspections/:id/images/:imageId/ocr/reprocess` — Trigger a new OCR run on an existing image while preserving historical provenance records (`ADMIN`, `INSPECTOR` own).
+
 ---
 
 ## Role-Based Access Control (RBAC) Matrix
@@ -147,6 +157,75 @@ The system enables inspectors and users to upload photographs of packaged produc
 | `/api/inspections/:id/images` | GET | All | Own Only | All |
 | `/api/inspections/:id/images/:imageId` | GET | All | Own Only | All |
 | `/api/inspections/:id/images/:imageId` | DELETE | Yes | Own Only | No |
+| `/api/inspections/:id/images/:imageId/ocr` | POST | Yes | Own Only | No |
+| `/api/inspections/:id/images/:imageId/ocr` | GET | All | Own Only | All |
+| `/api/inspections/:id/images/:imageId/ocr/status` | GET | All | Own Only | All |
+| `/api/inspections/:id/images/:imageId/ocr/reprocess` | POST | Yes | Own Only | No |
+
+---
+
+## OCR Architecture & Provider Abstraction
+
+```text
+Node.js Backend
+   |
+   v
+OcrService (Factory & Lifecycle Manager)
+   |
+   +----------------------+----------------------+
+   |                                             |
+   v                                             v
+MockOcrProvider                               HttpOcrProvider
+(Development & Local Testing)                 (Production AI/ML Microservice)
+   |                                             |
+   +----------------------+----------------------+
+                          |
+                          v
+                    OcrOutput
+                          |
+                          v
+                 OCRResult (PostgreSQL)
+```
+
+### Future AI/ML OCR Service HTTP Contract
+
+The backend `HttpOcrProvider` communicates with the AI/ML OCR microservice using the following HTTP request/response contract:
+
+#### Request format sent by backend:
+```http
+POST /ocr
+Content-Type: application/json
+Authorization: Bearer <OCR_SERVICE_API_KEY>
+
+{
+  "imageUrl": "https://supabase-storage-url/inspections/uuid/file.jpg",
+  "inspectionId": "4c4246bb-5645-4fd1-a185-5b5eb0ea21fa",
+  "inspectionImageId": "e229e192-3004-4b53-bc2e-2e407519a42f",
+  "mimeType": "image/jpeg"
+}
+```
+
+#### Expected response returned by AI/ML service:
+```json
+{
+  "success": true,
+  "data": {
+    "rawText": "MRP ₹499.00 (Incl. of all taxes)\nNet Quantity: 500 g\nMfg Date: 06/2026",
+    "confidence": 0.95,
+    "language": "eng",
+    "provider": "paddleocr-v4",
+    "processingTimeMs": 620,
+    "boundingBoxes": [
+      { "text": "MRP ₹499.00", "confidence": 0.98, "x": 10, "y": 20, "width": 100, "height": 30 },
+      { "text": "Net Quantity: 500 g", "confidence": 0.94, "x": 10, "y": 60, "width": 120, "height": 30 }
+    ],
+    "metadata": {
+      "model": "paddleocr-v4",
+      "device": "gpu"
+    }
+  }
+}
+```
 
 ---
 
@@ -183,6 +262,12 @@ The system enables inspectors and users to upload photographs of packaged produc
    SUPABASE_SERVICE_ROLE_KEY="your-supabase-service-role-key"
    SUPABASE_STORAGE_BUCKET="inspection-images"
    MAX_FILE_SIZE_MB=10
+
+   # OCR Provider Configuration
+   OCR_PROVIDER=mock
+   OCR_SERVICE_URL=https://ai-ocr-service.internal/ocr
+   OCR_SERVICE_API_KEY=your-ocr-service-api-key
+   OCR_TIMEOUT_MS=30000
    ```
 
 4. Generate Prisma client:
@@ -221,7 +306,7 @@ npm run build
 - [x] **Step 3 — Authentication**: User roles, JWT, bcrypt password hashing, RBAC middleware (`ADMIN`, `INSPECTOR`, `REVIEWER`)
 - [x] **Step 4 — Inspection Management**: Server-generated inspection numbers (`INS-YYYYMMDD-XXXXXXXX`), state machine workflow, ownership scoping, product lookups, audit logging
 - [x] **Step 5 — Image Upload & Storage**: Multi-part upload, Supabase Storage abstraction, magic bytes validation, IDOR protection, workflow status checks, audit logging
-- [ ] **Step 6 — OCR Integration**: OCR provider interface and integration
+- [x] **Step 6A — Backend OCR Integration Layer**: Provider abstraction (`MockOcrProvider`, `HttpOcrProvider`), `OCRResult` database lifecycle, Zod external response validation, `AbortController` timeouts, audit logging, 100% test coverage across 78 tests
 - [ ] **Step 7 — Declaration Extraction**: Extracting mandatory packaging attributes
 - [ ] **Step 8 — Rule Engine**: Configurable, versioned Legal Metrology rule validation
 - [ ] **Step 9 — Compliance Results**: Evidence scoring and PASS / FAIL / REVIEW outcomes
@@ -230,3 +315,4 @@ npm run build
 - [ ] **Step 12 — Dashboard & Analytics**: Summary metrics and statistics
 - [ ] **Step 13 — Testing & Security**: Integration tests, rate limiting, security hardening
 - [ ] **Step 14 — Deployment**: Docker containerization and deployment setup
+

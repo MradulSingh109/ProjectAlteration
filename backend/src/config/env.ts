@@ -38,6 +38,24 @@ const envSchema = z.object({
     .refine((val) => !isNaN(val) && val > 0 && val <= 100, {
       message: 'MAX_FILE_SIZE_MB must be between 1 and 100',
     }),
+  OCR_PROVIDER: z.enum(['mock', 'http']).default('mock'),
+  OCR_SERVICE_URL: z.string().optional(),
+  OCR_SERVICE_API_KEY: z.string().optional(),
+  OCR_TIMEOUT_MS: z
+    .string()
+    .default('30000')
+    .transform((val) => parseInt(val, 10))
+    .refine((val) => !isNaN(val) && val > 0, {
+      message: 'OCR_TIMEOUT_MS must be a positive integer in milliseconds',
+    }),
+}).superRefine((data, ctx) => {
+  if (data.OCR_PROVIDER === 'http' && (!data.OCR_SERVICE_URL || data.OCR_SERVICE_URL.trim() === '')) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'OCR_SERVICE_URL is required when OCR_PROVIDER is set to "http"',
+      path: ['OCR_SERVICE_URL'],
+    });
+  }
 });
 
 const parseEnv = () => {

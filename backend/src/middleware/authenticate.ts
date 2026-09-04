@@ -30,13 +30,22 @@ export const authenticateMiddleware = async (
     // Verify JWT payload
     const decoded = verifyToken(token);
 
+    // Validate subject (sub) format is a valid UUID
+    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    if (!decoded.sub || !uuidRegex.test(decoded.sub)) {
+      throw AppError.unauthorized(
+        'Invalid authentication token.',
+        'INVALID_TOKEN'
+      );
+    }
+
     // Fetch user from PostgreSQL
     const user = await prisma.user.findUnique({
       where: { id: decoded.sub },
       include: { role: true },
     });
 
-    if (!user) {
+    if (!user || !user.role) {
       throw AppError.unauthorized(
         'User account associated with this token no longer exists.',
         'USER_NOT_FOUND'
