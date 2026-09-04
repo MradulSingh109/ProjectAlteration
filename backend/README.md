@@ -125,15 +125,14 @@ The system enables inspectors and users to upload photographs of packaged produc
 * `GET /api/inspections/:id/images/:imageId` — Retrieve metadata and accessible URL for a single image with IDOR cross-inspection verification (`ADMIN`, `INSPECTOR` own, `REVIEWER`).
 * `DELETE /api/inspections/:id/images/:imageId` — Delete image record and remove object from storage (`ADMIN`, `INSPECTOR` own).
 
-### 5. OCR Integration Infrastructure (`/api/inspections/:id/images/:imageId/ocr`)
-* `POST /api/inspections/:id/images/:imageId/ocr` — Trigger OCR processing for a specific package image (`ADMIN`, `INSPECTOR` own).
-  * Executes OCR pipeline via configured provider (`MockOcrProvider` or `HttpOcrProvider`).
-  * Enforces state machine workflow rules (only `DRAFT` or `PROCESSING` allowed).
-  * Prevents duplicate concurrent requests via pending database lock.
-  * Records `OCRResult` database record with processing status (`PENDING` -> `SUCCESS` or `FAILED`).
-* `GET /api/inspections/:id/images/:imageId/ocr` — Retrieve all historical OCR results for an image (`ADMIN`, `INSPECTOR` own, `REVIEWER`).
-* `GET /api/inspections/:id/images/:imageId/ocr/status` — Get current OCR processing status (`NOT_STARTED`, `PENDING`, `SUCCESS`, `FAILED`).
-* `POST /api/inspections/:id/images/:imageId/ocr/reprocess` — Trigger a new OCR run on an existing image while preserving historical provenance records (`ADMIN`, `INSPECTOR` own).
+### 6. Compliance Results & Report Generation (`/api/inspections` & `/api/reports`)
+* `GET /api/inspections/:id/compliance-summary` — Detailed breakdown of declarations, validations, violations, and review metadata (`ADMIN`, `INSPECTOR` own, `REVIEWER`).
+* `GET /api/inspections/:id/compliance-result` — Evaluation summary comparing automated rule status, human review decisions, and final status (`ADMIN`, `INSPECTOR` own, `REVIEWER`).
+* `GET /api/inspections/:id/report` — Returns complete structured inspection report JSON. Supports optional `?persist=true` query parameter to save report record (`ADMIN`, `INSPECTOR` own, `REVIEWER`).
+* `POST /api/inspections/:id/reports` — Explicitly generate and persist a report record in PostgreSQL with `REPORT_GENERATED` audit log (`ADMIN`, `INSPECTOR` own, `REVIEWER`).
+* `GET /api/inspections/:id/reports` — List historical persisted report records for an inspection (`ADMIN`, `INSPECTOR` own, `REVIEWER`).
+* `GET /api/inspections/:id/reports/:reportId` — Retrieve single report record and structured payload (`ADMIN`, `INSPECTOR` own, `REVIEWER`).
+* `GET /api/reports/summary` — System-wide aggregate compliance dashboard metrics (scoped per inspector for `INSPECTOR`, global for `ADMIN` and `REVIEWER`).
 
 ---
 
@@ -161,6 +160,13 @@ The system enables inspectors and users to upload photographs of packaged produc
 | `/api/inspections/:id/images/:imageId/ocr` | GET | All | Own Only | All |
 | `/api/inspections/:id/images/:imageId/ocr/status` | GET | All | Own Only | All |
 | `/api/inspections/:id/images/:imageId/ocr/reprocess` | POST | Yes | Own Only | No |
+| `/api/inspections/:id/compliance-summary` | GET | All | Own Only | All |
+| `/api/inspections/:id/compliance-result` | GET | All | Own Only | All |
+| `/api/inspections/:id/report` | GET | All | Own Only | All |
+| `/api/inspections/:id/reports` | POST | All | Own Only | All |
+| `/api/inspections/:id/reports` | GET | All | Own Only | All |
+| `/api/inspections/:id/reports/:reportId` | GET | All | Own Only | All |
+| `/api/reports/summary` | GET | All | Own Only | All |
 
 ---
 
@@ -482,6 +488,45 @@ npm run build
 
 ---
 
+---
+
+## Step 10 — Compliance Results & Report Generation
+
+Step 10 aggregates data across all pipeline layers (inspections, products, declarations, validation results, violations, evidence, and audit logs) to produce comprehensive compliance summaries, structured report payloads, report history persistence, and administrative dashboard analytics.
+
+### Reporting Architecture & Endpoints
+
+```text
+Inspections / Products / Declarations / Validations / Violations / AuditLogs
+   |
+   v
+ReportService Data Aggregator
+   |
+   +---> Compliance Summary: Declarations breakdown, rule pass/fail/review counts, violation severity distributions
+   +---> Compliance Result: Automated vs. Human Review vs. Final status comparison
+   +---> Structured Report Payload: Complete standalone inspection report JSON
+   +---> Dashboard Summary: System-wide aggregate stats (inspections, compliance, violations by severity)
+   |
+   v
+Report Controller & Routes
+   |---> GET  /api/inspections/:id/compliance-summary
+   |---> GET  /api/inspections/:id/compliance-result
+   |---> GET  /api/inspections/:id/report (?persist=true)
+   |---> POST /api/inspections/:id/reports
+   |---> GET  /api/inspections/:id/reports
+   |---> GET  /api/inspections/:id/reports/:reportId
+   |---> GET  /api/reports/summary
+```
+
+### Key Guarantees & Security Features
+
+1. **Role Scoping & IDOR Protection**: Inspectors are strictly isolated to view reports and dashboard statistics for their own created inspections. Admins and Reviewers maintain system-wide visibility.
+2. **Audit Trail Logging**: Persisting a report record creates an immutable `REPORT_GENERATED` entry in `AuditLog`.
+3. **Data Sanitization**: Report payloads strip sensitive system credentials (`passwordHash`, `JWT_SECRET`).
+4. **Zero Schema Alterations**: Reuses existing `Report` model and `ReportType` enums without database migrations.
+
+---
+
 ## Development Roadmap
 
 - [x] **Step 1 — Foundation & Architecture**: Express, TypeScript, Zod env, Pino logging, Helmet, CORS, Error handling, Health check
@@ -494,9 +539,8 @@ npm run build
 - [x] **Step 7 — OCR Attribute Extraction & Declaration Processing**: `DeclarationExtractionService`, deterministic `DeclarationParser` engine (`MRP`, `NET_QUANTITY`, `MFG_DATE`, `EXP_DATE`, `CONSUMER_CARE`, `COUNTRY_OF_ORIGIN`, `COMMODITY_NAME`, `MFG_ADDRESS`, `IMPORTER_DETAILS`), evidence/image provenance linking, idempotency on re-extraction, RBAC enforcement, zero database schema changes/migrations, 95/95 tests passing
 - [x] **Step 8 — Compliance Rule Engine & Validation**: Deterministic rule evaluation engine (`RuleEngineService`, `RuleSelectorService`, `RuleEvaluatorService`, `ViolationService`), version-aware rule selection, category mapping, `ValidationResult` & `Violation` persistence, evidence provenance linking, overall `ComplianceStatus` calculation (`PASS` / `FAIL` / `REVIEW`), atomic re-evaluation transaction, RBAC & IDOR protection, 109/109 tests passing across all 6 test suites
 - [x] **Step 9 — Violation Management & Human Review Workflow**: `ViolationReviewService`, `InspectionReviewService`, paginated violation query API with status/severity filters, controlled status lifecycle (`OPEN` -> `CONFIRMED`, `DISMISSED`, `RESOLVED`), human review completion (`APPROVE`, `REJECT`, `REQUEST_CHANGES`), state machine transitions (`UNDER_REVIEW` -> `COMPLETED`, `CANCELLED`, `DRAFT`), automatic compliance status recalculation, RBAC enforcement (`ADMIN`, `REVIEWER`), IDOR protection, comprehensive audit trails, zero database migrations, 130/130 tests passing across all 7 test suites
-- [ ] **Step 10 — Human Review & Manual Overrides**: Manual declaration override and audit trail history
-- [ ] **Step 11 — Reports**: PDF compliance report generation
-- [ ] **Step 12 — Dashboard & Analytics**: Summary metrics and statistics
-- [ ] **Step 13 — Testing & Security**: Integration tests, rate limiting, security hardening
-- [ ] **Step 14 — Deployment**: Docker containerization and deployment setup
+- [x] **Step 10 — Compliance Results & Report Generation**: `ReportService`, `ReportController`, report JSON data aggregation, report persistence with `REPORT_GENERATED` audit log, compliance summary & result endpoints, dashboard aggregate analytics, strict RBAC & IDOR protections, 148/148 tests passing across all 8 test suites
+- [ ] **Step 11 — PDF & Document Export**: Exporting generated compliance reports to downloadable PDF format
+- [ ] **Step 12 — Testing & Security**: Rate limiting, security hardening & production readiness
+- [ ] **Step 13 — Deployment**: Docker containerization and deployment setup
 
