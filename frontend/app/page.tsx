@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   ShieldCheck,
   Server,
@@ -7,6 +8,7 @@ import {
   Palette,
   Network,
   Cpu,
+  Lock,
 } from "lucide-react";
 import { AppContainer } from "@/components/shared/app-container";
 import { PageHeader } from "@/components/shared/page-header";
@@ -18,6 +20,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const foundationFeatures = [
   {
@@ -56,6 +59,13 @@ const foundationFeatures = [
       "Centralized client configured for http://localhost:5000/api with standardized error normalization.",
   },
   {
+    icon: Lock,
+    title: "Authentication & Session",
+    status: "Active (Step 2)",
+    description:
+      "OpenAPI-compliant auth client, JWT token storage, session context, protected route guard, and login UI.",
+  },
+  {
     icon: Cpu,
     title: "Form & Chart Foundations",
     status: "Available",
@@ -81,10 +91,15 @@ export default function Home() {
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <Link href="/login">
+              <Button variant="outline" size="sm" className="text-xs">
+                Sign In
+              </Button>
+            </Link>
             <Badge variant="success" className="gap-1">
               <CheckCircle2 className="h-3 w-3" />
-              Step 1 Foundation Ready
+              Step 2 Auth Ready
             </Badge>
           </div>
         </AppContainer>

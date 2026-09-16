@@ -4,6 +4,7 @@
  */
 
 export * from "@/lib/api/types";
+export * from "./auth";
 
 export type NavItem = {
   title: string;

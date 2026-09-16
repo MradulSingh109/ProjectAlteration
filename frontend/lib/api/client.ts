@@ -1,6 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { ApiClientError } from "./errors";
 import { ApiErrorResponse } from "./types";
+import { tokenStorage } from "@/lib/auth/token-storage";
 
 const DEFAULT_BASE_URL = "http://localhost:5000/api";
 
@@ -16,14 +17,13 @@ export const apiClient = axios.create({
   },
 });
 
-// Request interceptor: infrastructure ready for future authentication
+// Request interceptor: inject Bearer token if present
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // In future auth steps, bearer token will be retrieved and injected here:
-    // const token = getAuthToken();
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    const token = tokenStorage.getToken();
+    if (token && !config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error: unknown) => {
@@ -31,12 +31,23 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor: centralized error handling & normalization
+// Response interceptor: centralized error handling, normalization & 401 session clearance
 apiClient.interceptors.response.use(
   (response) => {
     return response;
   },
   (error: AxiosError<ApiErrorResponse>) => {
+    // If backend reports 401 Unauthorized on a non-login route, clear stale token
+    if (error.response?.status === 401) {
+      const requestUrl = error.config?.url || "";
+      if (!requestUrl.includes("/auth/login")) {
+        tokenStorage.clearSession();
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("sih:session-expired"));
+        }
+      }
+    }
+
     if (error.response?.data?.error) {
       const { code, message, details } = error.response.data.error;
       throw new ApiClientError(message, {
@@ -66,3 +77,4 @@ apiClient.interceptors.response.use(
     throw ApiClientError.fromUnknown(error);
   }
 );
+

@@ -14,10 +14,12 @@ describe("Root Foundation Page (app/page.tsx)", () => {
     expect(screen.getAllByText(/SIH26034/i).length).toBeGreaterThan(0);
   });
 
-  it("displays step 1 ready badge", () => {
+  it("displays step readiness badge and sign in navigation", () => {
     render(<Home />);
-    expect(screen.getByText(/Step 1 Foundation Ready/i)).toBeInTheDocument();
+    expect(screen.getByText(/Step 2 Auth Ready/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Sign In/i })).toBeInTheDocument();
   });
+
 
   it("renders key architectural pillar cards", () => {
     render(<Home />);
