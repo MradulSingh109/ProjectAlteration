@@ -16,6 +16,29 @@ vi.mock("next/navigation", () => ({
   usePathname: vi.fn(() => "/admin"),
 }));
 
+vi.mock("@/hooks/use-dashboard", () => ({
+  useDashboard: vi.fn(() => ({
+    data: {
+      inspections: { total: 10, draft: 1, processing: 2, underReview: 1, completed: 6, cancelled: 0 },
+      compliance: { pass: 8, fail: 1, review: 1 },
+      violations: {
+        total: 2,
+        open: 1,
+        confirmed: 1,
+        resolved: 0,
+        dismissed: 0,
+        bySeverity: { LOW: 0, MEDIUM: 1, HIGH: 1, CRITICAL: 0 },
+      },
+      generatedAt: "2026-09-17T00:00:00.000Z",
+    },
+    isLoading: false,
+    isError: false,
+    error: null,
+    refetch: vi.fn(),
+    isFetching: false,
+  })),
+}));
+
 describe("Authenticated Route Placeholders", () => {
   beforeEach(() => {
     vi.spyOn(AuthProviderModule, "useAuth").mockReturnValue({
@@ -36,9 +59,9 @@ describe("Authenticated Route Placeholders", () => {
     });
   });
 
-  it("renders Dashboard placeholder cleanly", () => {
+  it("renders Dashboard cleanly", () => {
     render(<DashboardPage />);
-    expect(screen.getByRole("heading", { level: 1, name: /System Dashboard/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: /(Compliance|System) Dashboard/i })).toBeInTheDocument();
   });
 
   it("renders Inspections placeholder cleanly", () => {
