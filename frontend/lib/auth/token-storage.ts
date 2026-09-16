@@ -5,21 +5,41 @@ import { AuthUser } from "@/types/auth";
  *
  * Security Architecture & Trade-Off Documentation:
  * ------------------------------------------------
- * The SIH26034 backend is an independent Express REST API utilizing Bearer JWT
- * authentication via standard HTTP `Authorization: Bearer <token>` headers rather than
- * server-set HttpOnly session cookies.
+ * 1. Bearer Token Contract:
+ *    The SIH26034 backend is an independent Express REST API utilizing Bearer JWT
+ *    authentication via HTTP `Authorization: Bearer <token>` headers rather than
+ *    server-set HttpOnly session cookies.
  *
- * In this client-side architecture, tokens are retained in browser localStorage
- * with an automatic in-memory fallback when localStorage is unavailable (e.g., during
- * Server-Side Rendering (SSR), or when blocked by strict browser privacy settings).
+ * 2. LocalStorage & XSS Implications:
+ *    Tokens are retained in browser localStorage (with an automatic in-memory fallback
+ *    for SSR or when localStorage is unavailable/restricted).
+ *    Because localStorage is accessible to JavaScript within the origin, Cross-Site
+ *    Scripting (XSS) prevention is critical. Strict input validation, DOM sanitization,
+ *    and Content Security Policies (CSP) must be enforced across all components.
  *
- * Trade-Off:
- * - LocalStorage is resilient to tab reloads and enables seamless client-side authentication.
- * - However, items in LocalStorage can theoretically be accessed by malicious scripts if an
- *   XSS vulnerability exists. Therefore, strict input validation, DOM sanitization, and
- *   Content Security Policies must be enforced across all components.
- * - Sensitive credentials (passwords) and server secrets are NEVER persisted or logged.
+ * 3. Centralized Token Management:
+ *    All token retrieval, storage, and clearance operations are strictly centralized
+ *    through this tokenStorage module. No raw localStorage keys are accessed elsewhere.
+ *
+ * 4. Zero Sensitive Credential Exposure:
+ *    - Passwords are NEVER stored in localStorage, memory caches, or anywhere on the client.
+ *    - Tokens and passwords are NEVER logged to console, external loggers, or telemetry.
+ *    - Tokens are NEVER included in URLs, query strings, or rendered into the UI.
+ *
+ * 5. Authoritative Authorization:
+ *    Client-side role information is strictly for UI/UX rendering (e.g. navigation state).
+ *    The backend remains the authoritative enforcement layer for all authorization decisions.
+ *
+ * 6. Refresh Token Status & Expiration:
+ *    The backend contract does not provide or support refresh tokens. Tokens have a finite
+ *    lifetime governed by backend configuration (default 1 day).
+ *
+ * 7. Session Invalidation on 401:
+ *    Any 401 Unauthorized or TokenExpired response from the backend triggers immediate
+ *    session clearance through this module, avoiding redirect loops and ensuring expired
+ *    sessions are promptly terminated.
  */
+
 
 const TOKEN_KEY = "sih26034_auth_token";
 const USER_KEY = "sih26034_auth_user";
