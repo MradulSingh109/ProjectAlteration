@@ -28,7 +28,7 @@ function LoginForm() {
   const { isAuthenticated, isLoading: isAuthLoading, login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectParam = searchParams.get("redirect") || "/verify-session";
+  const redirectParam = searchParams.get("redirect") || "/dashboard";
 
   const [apiErrorMessage, setApiErrorMessage] = React.useState<string | null>(null);
 

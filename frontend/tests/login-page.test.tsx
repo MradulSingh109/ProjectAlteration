@@ -123,7 +123,7 @@ describe("LoginPage Component", () => {
         password: "ValidPassword123!",
       });
       expect(mockLogin).toHaveBeenCalledWith(mockAuthResponse);
-      expect(mockReplace).toHaveBeenCalledWith("/verify-session");
+      expect(mockReplace).toHaveBeenCalledWith("/dashboard");
     });
   });
 
@@ -152,7 +152,7 @@ describe("LoginPage Component", () => {
     });
   });
 
-  it("redirects authenticated user to verify-session immediately", () => {
+  it("redirects authenticated user to dashboard immediately", () => {
     vi.spyOn(AuthProviderModule, "useAuth").mockReturnValue({
       user: {
         id: "usr-1",
@@ -172,6 +172,7 @@ describe("LoginPage Component", () => {
 
     renderWithProviders(<LoginPage />);
 
-    expect(mockReplace).toHaveBeenCalledWith("/verify-session");
+    expect(mockReplace).toHaveBeenCalledWith("/dashboard");
   });
 });
+
