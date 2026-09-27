@@ -1,0 +1,20 @@
+# ==============================================================================
+# NWIS ML Pipeline - Document Processing & OCR Dependencies (Python 3.10.11)
+# ==============================================================================
+
+# PDF Processing & Extraction
+pypdf>=4.0.0
+
+# OCR & Computer Vision (PaddlePaddle 2.6 with Python 3.10 wheel support)
+paddlepaddle>=2.6.0,<2.7.0
+paddleocr>=2.7.0
+opencv-python-headless>=4.8.0
+Pillow>=9.5.0,<11.0.0
+
+# Numerical & Data Processing (NumPy 1.x pinned for PaddlePaddle compatibility)
+numpy>=1.24.0,<2.0.0
+pandas>=2.0.0
+
+# Utilities
+tqdm>=4.65.0
+python-dotenv>=1.0.0
