@@ -1,0 +1,2 @@
+# Infrastructure Layer
+Concrete database implementations, external adapters, and client connectors.
