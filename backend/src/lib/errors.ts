@@ -5,6 +5,7 @@
 
 export type ErrorCode =
   | "INTERNAL_SERVER_ERROR"
+  | "DATABASE_UNAVAILABLE"
   | "VALIDATION_ERROR"
   | "NOT_FOUND"
   | "UNAUTHORIZED"
