@@ -1,0 +1,5 @@
+{
+  "file_name": "WELL_SURVEY_OIL102.pdf",
+  "document_type": "well_survey",
+  "cleaned_text": "Synthetic Well Trajectory / Survey — OIL-102\nNOTICE\nSYNTHETIC TRAINING DOCUMENT — NOT REAL OIL DATA.\nSurvey\nMD\nTVD\nInclination\nAzimuth\nDogleg\n500\n500\n0.8°\n92°\n0.2°/30m\n1500\n1498\n2.1°\n94°\n0.5°/30m\n2200\n2194\n4.2°\n97°\n0.7°/30m\n2800\n2787\n6.8°\n101°\n0.9°/30m\n3200\n3180\n8.1°\n104°\n0.6°/30m\n3650\n3410\n9.0°\n108°\n0.4°/30m\nNotes\nTrajectory remained within the planned corridor.\nUse this file for trajectory-similarity feature development."
+}

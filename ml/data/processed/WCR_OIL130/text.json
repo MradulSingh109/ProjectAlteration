@@ -1,0 +1,5 @@
+{
+  "file_name": "WCR_OIL130.pdf",
+  "document_type": "well_completion_report",
+  "cleaned_text": "Synthetic Well Completion Report — OIL-130\nNOTICE\nSYNTHETIC TRAINING DOCUMENT — NOT REAL OIL DATA.\nWell Information\nField\nWell ID\nLatitude\nLongitude\nTD\nNorth Ridge\nOIL-130\n26.1450\n94.1510\n3720 m\nFormation Tops\nFormation\nTop\nBottom\nLithology\nF-A\n0\n1470\nShale\nF-B\n1470\n2295\nSandstone\nF-X\n2295\n3210\nFractured limestone\nF-Y\n3210\n3720\nShale/sandstone\nMajor Events\nDepth\nEvent\nSeverity\nCause\nMitigation\n2868 m\nMud loss\nHIGH\nFracture network\nLCM treatment\n2940 m\nMud loss\nMEDIUM\nFracture network\nReduced flow\n3160 m\nTorque spike\nMEDIUM\nFormation change\nReduced WOB"
+}

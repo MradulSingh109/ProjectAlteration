@@ -1,0 +1,49 @@
+{
+  "file_name": "CEMENTING_OIL114.pdf",
+  "tables": [
+    [
+      "Parameter",
+      "Planned",
+      "Actual"
+    ],
+    [
+      "Slurry Volume",
+      "165 bbl",
+      "171 bbl"
+    ],
+    [
+      "Lead Density",
+      "12.5 ppg",
+      "12.6 ppg"
+    ],
+    [
+      "Tail Density",
+      "15.8 ppg",
+      "15.9 ppg"
+    ],
+    [
+      "Time",
+      "Event",
+      "Severity",
+      "Observation"
+    ],
+    [
+      "11:42",
+      "Pump pressure increase",
+      "MEDIUM",
+      "Above expected trend"
+    ],
+    [
+      "12:10",
+      "Cement returns delayed",
+      "MEDIUM",
+      "Possible losses"
+    ],
+    [
+      "12:36",
+      "Job completed",
+      "LOW",
+      "Pressure stabilized"
+    ]
+  ]
+}
