@@ -1,0 +1,25 @@
+{
+  "notice": "All documents are synthetic and intended only for NWIS development/testing.",
+  "documents": [
+    "WCR_OIL102.pdf",
+    "DDR_OIL102_2024_03_12.pdf",
+    "MUDLOG_OIL087.pdf",
+    "DDR_OIL087_2023_11_07.pdf",
+    "CEMENTING_OIL114.pdf",
+    "WELL_SURVEY_OIL102.pdf",
+    "WCR_OIL130.pdf"
+  ],
+  "tests": [
+    "PDF text extraction",
+    "OCR fallback",
+    "Well ID extraction",
+    "Depth extraction",
+    "Formation extraction",
+    "Event classification",
+    "Severity/cause/mitigation extraction",
+    "Source provenance",
+    "Cross-well correlation",
+    "Similarity ranking",
+    "RAG retrieval"
+  ]
+}

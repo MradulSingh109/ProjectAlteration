@@ -1,0 +1,33 @@
+{
+  "file_name": "WCR_OIL102.pdf",
+  "tables": [
+    [
+      "Depth",
+      "Event",
+      "Severity",
+      "Cause",
+      "Mitigation"
+    ],
+    [
+      "2845 m",
+      "Mud loss",
+      "HIGH",
+      "Fractured limestone",
+      "LCM treatment"
+    ],
+    [
+      "2910 m",
+      "Torque spike",
+      "MEDIUM",
+      "Formation interaction",
+      "Reduced WOB/RPM"
+    ],
+    [
+      "3120 m",
+      "Stuck pipe",
+      "HIGH",
+      "Differential sticking",
+      "Circulation + freeing"
+    ]
+  ]
+}
