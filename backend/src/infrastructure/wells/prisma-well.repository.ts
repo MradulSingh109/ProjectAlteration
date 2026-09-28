@@ -6,11 +6,7 @@ import {
   NearbyWellResult,
 } from "@/domain/wells/well.entity";
 import { FormationEntity } from "@/domain/wells/formation.entity";
-import {
-  Prisma,
-  PrismaClient,
-  WellStatus as PrismaWellStatus,
-} from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 function mapWell(row: any): WellEntity & { formations?: FormationEntity[] } {
   return {
@@ -77,7 +73,7 @@ export class PrismaWellRepository implements IWellRepository {
         spudDate: data.spudDate,
         plannedDepthMd: new Prisma.Decimal(data.plannedDepthMd.toString()),
         plannedDepthTvd: new Prisma.Decimal(data.plannedDepthTvd.toString()),
-        status: data.status as PrismaWellStatus,
+        status: data.status,
       },
     });
     return mapWell(well);
@@ -122,9 +118,7 @@ export class PrismaWellRepository implements IWellRepository {
         ...(filter?.field
           ? { field: { equals: filter.field, mode: "insensitive" } }
           : {}),
-        ...(filter?.status
-          ? { status: filter.status as PrismaWellStatus }
-          : {}),
+        ...(filter?.status ? { status: filter.status } : {}),
       },
       take: filter?.limit ?? 100,
       skip: filter?.offset ?? 0,
@@ -161,9 +155,7 @@ export class PrismaWellRepository implements IWellRepository {
               ),
             }
           : {}),
-        ...(data.status !== undefined
-          ? { status: data.status as PrismaWellStatus }
-          : {}),
+        ...(data.status !== undefined ? { status: data.status } : {}),
       },
     });
     return mapWell(well);
@@ -210,7 +202,7 @@ export class PrismaWellRepository implements IWellRepository {
     const deltaLon = isNearPole ? 180 : radiusKm / (111.32 * cosLat);
 
     // 3. Construct parameterized longitude filter handling antimeridian wraparound
-    let lonFilter: Prisma.Sql;
+    let lonFilter: ReturnType<typeof Prisma.sql>;
     if (deltaLon >= 180 || isNearPole) {
       // Covers all longitudes; no prefiltering on longitude needed
       lonFilter = Prisma.sql`TRUE`;
@@ -231,19 +223,19 @@ export class PrismaWellRepository implements IWellRepository {
       lonFilter = Prisma.sql`(longitude BETWEEN ${minLon}::double precision AND ${maxLon}::double precision)`;
     }
 
+    type RawNearbyRow = {
+      id: string;
+      wellId: string;
+      name: string;
+      field: string;
+      latitude: number;
+      longitude: number;
+      status: string;
+      distanceKm: number;
+    };
+
     // 4. Parameterized query executing candidate prefilter -> Haversine calculation -> radius check -> distance sort
-    const rows = await this.db.$queryRaw<
-      Array<{
-        id: string;
-        wellId: string;
-        name: string;
-        field: string;
-        latitude: number;
-        longitude: number;
-        status: string;
-        distanceKm: number;
-      }>
-    >`
+    const rows = await this.db.$queryRaw<RawNearbyRow[]>`
       SELECT 
         id,
         well_id as "wellId",
@@ -277,7 +269,7 @@ export class PrismaWellRepository implements IWellRepository {
       LIMIT ${limit}::integer;
     `;
 
-    return rows.map((r) => ({
+    return (rows as RawNearbyRow[]).map((r: RawNearbyRow) => ({
       id: r.id,
       wellId: r.wellId,
       name: r.name,
