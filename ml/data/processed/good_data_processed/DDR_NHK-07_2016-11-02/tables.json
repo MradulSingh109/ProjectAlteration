@@ -1,0 +1,95 @@
+{
+  "file_name": "DDR_NHK-07_2016-11-02.pdf",
+  "tables": [
+    [
+      "From",
+      "To",
+      "Depth (m)",
+      "Operation"
+    ],
+    [
+      "00:00",
+      "03:30",
+      "2,966",
+      "Drilled ahead /4\" hole, parameters steady, monitored returns."
+    ],
+    [
+      "03:30",
+      "04:15",
+      "2,988",
+      "Connection, survey, circulated bottoms-up."
+    ],
+    [
+      "04:15",
+      "09:45",
+      "2,988",
+      "Torque Spike — see remarks. NPT 2.5 hrs."
+    ],
+    [
+      "09:45",
+      "13:00",
+      "2,988",
+      "Conditioned hole, reamed interval, circulated hi-vis sweep."
+    ],
+    [
+      "13:00",
+      "18:30",
+      "3,015",
+      "Drilled ahead at controlled parameters."
+    ],
+    [
+      "18:30",
+      "19:15",
+      "3,015",
+      "Connection, flow-check, mud properties checked."
+    ],
+    [
+      "19:15",
+      "24:00",
+      "3,030",
+      "Drilled ahead; depth at 24:00 hrs as reported."
+    ],
+    [
+      "MW (ppg)",
+      "FV (s)",
+      "PV (cP)",
+      "YP (lb/100ft2)",
+      "pH",
+      "Solids (%)",
+      "Type"
+    ],
+    [
+      "10.7",
+      "73",
+      "28",
+      "30",
+      "9.5",
+      "11.3",
+      "KCl-Polymer"
+    ],
+    [
+      "String",
+      "Size",
+      "Shoe (m MD)",
+      "TOC (m)"
+    ],
+    [
+      "Conductor",
+      "20\"",
+      "82",
+      "0"
+    ],
+    [
+      "Surface",
+      "/8\"",
+      "1,105",
+      "0"
+    ],
+    [
+      "Intermediate",
+      "/8\"",
+      "3,024",
+      "2,300"
+    ]
+  ]
+}

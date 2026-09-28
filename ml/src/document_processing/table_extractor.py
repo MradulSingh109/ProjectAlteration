@@ -19,15 +19,35 @@ class TableExtractor:
     COLUMN_HEADERS = {
         "actual", "average", "azimuth", "bottom md", "cause", "date",
         "depth", "depth end", "depth md", "depth start", "description",
-        "dogleg", "event", "formation", "inclination", "lead density",
-        "lithology", "maximum", "md", "mitigation", "mud weight",
-        "observation", "parameter", "planned", "rop", "rpm", "severity",
-        "setting depth", "spp", "tail density", "time", "top md", "tvd",
-        "volume", "well", "well id", "wob",
+        "dogleg", "event", "field", "formation", "from", "fv", "inclination",
+        "lead density", "lithology", "maximum", "md", "mitigation", "mud",
+        "mud weight", "mw", "observation", "operation", "parameter", "ph",
+        "planned", "pv", "rop", "rpm", "severity", "setting depth", "shoe",
+        "size", "solids", "spp", "string", "tail density", "time", "toc",
+        "to", "top md", "tvd", "type", "volume", "well", "well id", "wob",
+        "yp",
     }
 
     def _is_column_header(self, line: str) -> bool:
-        return line.strip().lower() in self.COLUMN_HEADERS
+        normalized = re.sub(r"\s*\([^)]*\)", "", line.strip().lower())
+        normalized = re.sub(r"[^a-z0-9 ]+", " ", normalized)
+        normalized = re.sub(r"\s+", " ", normalized).strip()
+        return normalized in self.COLUMN_HEADERS
+
+    @staticmethod
+    def _is_numeric_or_time_cell(cell: str) -> bool:
+        return bool(
+            re.fullmatch(
+                r"\s*\d[\d,]*(?:\.\d+)?(?:\s*(?:m|ft|hrs?|hours?|bbl|ppg|psi|gpm))?\s*"
+                r"|\s*\d{1,2}:\d{2}\s*",
+                cell,
+                flags=re.IGNORECASE,
+            )
+        )
+
+    @staticmethod
+    def _is_section_heading(line: str) -> bool:
+        return bool(re.fullmatch(r"\d+\.\s+[A-Z][A-Z0-9 /&()-]*", line.strip()))
 
     def _extract_vertical_tables(self, lines: list[str]) -> list[list[str]]:
         """Group tables whose PDF text lays out each cell on a separate line."""
@@ -53,12 +73,15 @@ class TableExtractor:
             data_index = header_end
             width = len(headers)
             while data_index + width <= len(lines):
+                if self._is_section_heading(lines[data_index]):
+                    break
+
                 cells = [cell.strip() for cell in lines[data_index:data_index + width]]
                 if any(not cell for cell in cells):
                     break
 
                 numeric_count = sum(bool(re.search(r"\d", cell)) for cell in cells)
-                if not (re.search(r"\d", cells[0]) or numeric_count >= width - 1):
+                if not (self._is_numeric_or_time_cell(cells[0]) or numeric_count >= width - 1):
                     break
 
                 data_rows.append(cells)

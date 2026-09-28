@@ -1,0 +1,62 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 4 0 R >> >> /MediaBox [0 0 612 792] /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+5 0 obj
+<< /Length 2036 >>
+stream
+BT
+/F1 10 Tf
+50 760 Td
+14 TL
+(OIL INDIA LIMITED \(OIL\) - DULIAJAN HEADQUARTERS) Tj T*
+(DOCUMENT: WCR_W087_Final.pdf \(Well Completion Report \(WCR\)\)) Tj T*
+(WELL ID: W-087 | FORMATION: Barail Coal-Shale | INTERVAL: 3,390 m – 3,460 m) Tj T*
+(--------------------------------------------------------------------------------) Tj T*
+(DATE: 2025-08-29 | AUTHOR: Wellsite Geology & Drilling Engineering Directorate, OIL) Tj T*
+(SHA-256 INTEGRITY HASH: f4f1b388e7b7c76fc328040435598138c37d3e0113f315efa9cd93506e13d861) Tj T*
+(EXTRACTED EVENT: Stuck Pipe & Mud Loss @ 3430 m) Tj T*
+(SEVERITY: CRITICAL | LOSS RATE: 12.8 bbl/hr) Tj T*
+(MITIGATION: 20 bbl LCM Pill + Hydraulic jarring \(42T\) + 15 bbl Organic Spotting Fluid + 3% KCl/Asphaltene inhibition) Tj T*
+(--------------------------------------------------------------------------------) Tj T*
+() Tj T*
+(SUMMARY: Comprehensive Well Completion Report for Duliajan-South-087 detailing) Tj T*
+(12.8 bbl/hr mud loss at 3,412 m followed by mechanical pipe sticking \(32 hrs NPT\)) Tj T*
+(at 3,430 m due to coal sloughing. VERBATIM OPERATIONAL LOG: SECTION 4.3 - DRILLING) Tj T*
+(HAZARDS & NPT ANALYSIS: While drilling Barail Coal-Shale at 3,412 m, partial) Tj T*
+(circulation losses of 12.8 bbl/hr reduced annular velocity in the 8-1/2" section.) Tj T*
+(During subsequent wiper trip at 3,430 m, splintery coal and carbonaceous shale) Tj T*
+(cavings bridged around the upper stabilizer, causing immediate mechanical pack-off) Tj T*
+(\(65 tonnes overpull, 3,150 psi SPP\). String was freed by spotting 15 bbl organic) Tj T*
+(surfactant pill and downward jarring at 42 tonnes. LESSON LEARNED: In Barail) Tj T*
+(horizon \(3,400–3,450 m\), always pre-treat mud with 6 ppb micronized LCM and) Tj T*
+(asphaltic shale inhibitor prior to crossing 3,400 m to prevent filtrate-induced) Tj T*
+(coal sloughing.) Tj T*
+() Tj T*
+(--------------------------------------------------------------------------------) Tj T*
+(SECURITY WATERMARK: CONFIDENTIAL - OIL INDIA LTD - eRTMAC-NWIS VERIFIED) Tj T*
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000229 00000 n 
+0000000297 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+2386
+%%EOF

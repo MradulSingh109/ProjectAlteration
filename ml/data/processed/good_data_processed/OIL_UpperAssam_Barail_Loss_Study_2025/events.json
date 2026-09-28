@@ -1,0 +1,47 @@
+{
+  "events": [
+    {
+      "event_id": "OIL_UpperAssam_Barail_Loss_Study_2025:event-001",
+      "well_id": "NHR-04",
+      "event_type": "STUCK_PIPE",
+      "depth_md": null,
+      "depth_tvd": null,
+      "formation": null,
+      "severity": null,
+      "description": "circulation (10â22 bbl/hr) and subsequent coal-packoff stuck pipe within a narrow",
+      "cause": null,
+      "mitigation": null,
+      "outcome": null,
+      "source_document": "OIL_UpperAssam_Barail_Loss_Study_2025.pdf",
+      "source_page": 1,
+      "confidence": 0.7,
+      "npt_hours": null,
+      "source_section": "Unstructured report text",
+      "extraction_model": "nwis-rules-baseline-v1",
+      "extraction_timestamp": "2026-09-28T05:32:19+00:00",
+      "evidence": [
+        {
+          "field": "event_type",
+          "original_text": "circulation (10â22 bbl/hr) and subsequent coal-packoff stuck pipe within a narrow",
+          "source_document": "OIL_UpperAssam_Barail_Loss_Study_2025.pdf",
+          "source_page": 1,
+          "source_section": "Unstructured report text"
+        },
+        {
+          "field": "description",
+          "original_text": "circulation (10â22 bbl/hr) and subsequent coal-packoff stuck pipe within a narrow",
+          "source_document": "OIL_UpperAssam_Barail_Loss_Study_2025.pdf",
+          "source_page": 1,
+          "source_section": "Unstructured report text"
+        },
+        {
+          "field": "well_id",
+          "original_text": "circulation (10â22 bbl/hr) and subsequent coal-packoff stuck pipe within a narrow",
+          "source_document": "OIL_UpperAssam_Barail_Loss_Study_2025.pdf",
+          "source_page": 1,
+          "source_section": "Unstructured report text"
+        }
+      ]
+    }
+  ]
+}

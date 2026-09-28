@@ -1,0 +1,16 @@
+# RAG and Embeddings Configuration for NWIS (Step 10)
+
+retrieval:
+  top_k: 4
+  hybrid_alpha: 0.5 # balance between vector and lexical
+  max_distance_km: 25.0
+  min_relevance_score: 0.10
+
+chunking:
+  min_chunk_length: 30
+  split_by_sections: true
+
+paths:
+  processed_documents_dir: "data/processed/good_data_processed"
+  wells_csv: "data/processed/good_data_processed/historical_dataset/wells.csv"
+  events_csv: "data/processed/good_data_processed/historical_dataset/events.csv"

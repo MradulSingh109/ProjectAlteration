@@ -1,0 +1,82 @@
+{
+  "events": [
+    {
+      "event_id": "DDR_DLJ-21_2018-09-05:event-001",
+      "well_id": "DLJ-21",
+      "event_type": "MUD_LOSS",
+      "depth_md": 2431,
+      "depth_tvd": null,
+      "formation": "Tipam",
+      "severity": "LOW",
+      "description": "MUD LOSS at 2,431 m MD (TIPAM)",
+      "cause": null,
+      "mitigation": "Added fine LCM to the active system and monitored pit volume.",
+      "outcome": null,
+      "source_document": "DDR_DLJ-21_2018-09-05.pdf",
+      "source_page": 1,
+      "confidence": 0.9,
+      "npt_hours": 1.5,
+      "source_section": "4. DRILLING EVENTS / REMARKS",
+      "extraction_model": "nwis-rules-baseline-v1",
+      "extraction_timestamp": "2026-09-28T05:32:19+00:00",
+      "evidence": [
+        {
+          "field": "event_type",
+          "original_text": "MUD LOSS at 2,431 m MD (TIPAM) | Severity: LOW | NPT: 1.5 hrs | MW: 9.8 ppg",
+          "source_document": "DDR_DLJ-21_2018-09-05.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "description",
+          "original_text": "MUD LOSS at 2,431 m MD (TIPAM) | Severity: LOW | NPT: 1.5 hrs | MW: 9.8 ppg",
+          "source_document": "DDR_DLJ-21_2018-09-05.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "well_id",
+          "original_text": "MUD LOSS at 2,431 m MD (TIPAM) | Severity: LOW | NPT: 1.5 hrs | MW: 9.8 ppg\nSeepage losses (4 bbl/hr) encountered in Tipam sands at 2,431 m MD; total loss 22 bbl.\nMitigation: Added fine LCM to the active system and monitored pit volume.\nLesson: Seepage in upper Tipam precedes larger losses deeper in the sand package.",
+          "source_document": "DDR_DLJ-21_2018-09-05.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "depth_md",
+          "original_text": "MUD LOSS at 2,431 m MD (TIPAM) | Severity: LOW | NPT: 1.5 hrs | MW: 9.8 ppg",
+          "source_document": "DDR_DLJ-21_2018-09-05.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "formation",
+          "original_text": "MUD LOSS at 2,431 m MD (TIPAM) | Severity: LOW | NPT: 1.5 hrs | MW: 9.8 ppg",
+          "source_document": "DDR_DLJ-21_2018-09-05.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "severity",
+          "original_text": "MUD LOSS at 2,431 m MD (TIPAM) | Severity: LOW | NPT: 1.5 hrs | MW: 9.8 ppg",
+          "source_document": "DDR_DLJ-21_2018-09-05.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "mitigation",
+          "original_text": "Mitigation: Added fine LCM to the active system and monitored pit volume.",
+          "source_document": "DDR_DLJ-21_2018-09-05.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "npt_hours",
+          "original_text": "MUD LOSS at 2,431 m MD (TIPAM) | Severity: LOW | NPT: 1.5 hrs | MW: 9.8 ppg",
+          "source_document": "DDR_DLJ-21_2018-09-05.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        }
+      ]
+    }
+  ]
+}

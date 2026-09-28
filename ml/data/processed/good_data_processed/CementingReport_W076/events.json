@@ -1,0 +1,89 @@
+{
+  "events": [
+    {
+      "event_id": "CementingReport_W076:event-001",
+      "well_id": "W-076",
+      "event_type": "STUCK_PIPE",
+      "depth_md": 2780,
+      "depth_tvd": null,
+      "formation": "Tipam",
+      "severity": "MEDIUM",
+      "description": "Differential Pipe Sticking @ 2780 m",
+      "cause": "340 psi hydrostatic overbalance",
+      "mitigation": "15 bbl surfactant pipe-lax pill + low-density lightweight lead cement slurry (1.42 sg)",
+      "outcome": "Freed pipe using 15 bbl organic surfactant spotting fluid. Subsequent 9-5/8\" casing cementing utilized fiber-laced 1.42 sg lead slurry to prevent breakdown across weak Tipam-Barail transition. -------------------------------------------------------------------------------- SECURITY WATERMARK: CONFIDENTIAL - OIL INDIA LTD - eRTMAC-NWIS VERIFIED",
+      "source_document": "CementingReport_W076.pdf",
+      "source_page": 1,
+      "confidence": 0.9,
+      "npt_hours": null,
+      "source_section": "EXTRACTED EVENT",
+      "extraction_model": "nwis-rules-baseline-v1",
+      "extraction_timestamp": "2026-09-28T05:32:19+00:00",
+      "evidence": [
+        {
+          "field": "event_type",
+          "original_text": "EXTRACTED EVENT: Differential Pipe Sticking @ 2780 m",
+          "source_document": "CementingReport_W076.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        },
+        {
+          "field": "description",
+          "original_text": "EXTRACTED EVENT: Differential Pipe Sticking @ 2780 m",
+          "source_document": "CementingReport_W076.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        },
+        {
+          "field": "well_id",
+          "original_text": "WELL ID: W-076 | FORMATION: Tipam Sandstone | INTERVAL: 2,400 m â 3,100 m",
+          "source_document": "CementingReport_W076.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        },
+        {
+          "field": "depth_md",
+          "original_text": "EXTRACTED EVENT: Differential Pipe Sticking @ 2780 m",
+          "source_document": "CementingReport_W076.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        },
+        {
+          "field": "formation",
+          "original_text": "WELL ID: W-076 | FORMATION: Tipam Sandstone | INTERVAL: 2,400 m â 3,100 m",
+          "source_document": "CementingReport_W076.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        },
+        {
+          "field": "severity",
+          "original_text": "SEVERITY: MEDIUM | LOSS RATE: 1.5 bbl/hr",
+          "source_document": "CementingReport_W076.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        },
+        {
+          "field": "cause",
+          "original_text": "Tipam sandstone due to 340 psi hydrostatic overbalance. Freed pipe using 15 bbl",
+          "source_document": "CementingReport_W076.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        },
+        {
+          "field": "mitigation",
+          "original_text": "MITIGATION: 15 bbl surfactant pipe-lax pill + low-density lightweight lead cement slurry (1.42 sg)",
+          "source_document": "CementingReport_W076.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        },
+        {
+          "field": "outcome",
+          "original_text": "Tipam sandstone due to 340 psi hydrostatic overbalance. Freed pipe using 15 bbl",
+          "source_document": "CementingReport_W076.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        }
+      ]
+    }
+  ]
+}

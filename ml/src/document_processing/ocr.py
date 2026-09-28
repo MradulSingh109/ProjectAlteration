@@ -12,12 +12,18 @@ The initial version keeps the logic straightforward:
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 try:
     from paddleocr import PaddleOCR
 except ImportError:  # pragma: no cover
     PaddleOCR = None
+
+try:
+    import pypdfium2 as pdfium
+except ImportError:  # pragma: no cover
+    pdfium = None
 
 
 class OCRProcessor:
@@ -34,12 +40,34 @@ class OCRProcessor:
             )
 
         if self._ocr_model is None:
-            self._ocr_model = PaddleOCR(use_angle_cls=True, lang="en", show_log=False)
+            self._ocr_model = PaddleOCR(
+                lang="en",
+                use_textline_orientation=True,
+                enable_mkldnn=False,
+            )
 
         return self._ocr_model
 
-    def run_ocr(self, pdf_path: str | Path) -> str:
-        """Run OCR on a PDF or image file and return extracted text."""
+    @staticmethod
+    def _recognized_texts(result) -> list[str]:
+        """Read recognized text from PaddleOCR 3 result objects or dictionaries."""
+        texts = []
+        for item in result:
+            payload = getattr(item, "json", item)
+            if callable(payload):
+                payload = payload()
+            if isinstance(payload, str):
+                payload = json.loads(payload)
+            if not isinstance(payload, dict):
+                continue
+
+            data = payload.get("res", payload)
+            if isinstance(data, dict):
+                texts.extend(text for text in data.get("rec_texts", []) if text)
+        return texts
+
+    def run_ocr_pages(self, pdf_path: str | Path) -> list[str]:
+        """Run OCR and return recognized text separately for each PDF page."""
         pdf_path = Path(pdf_path)
 
         if not pdf_path.exists():
@@ -47,27 +75,43 @@ class OCRProcessor:
 
         if PaddleOCR is None:
             return ""
+        if pdfium is None:
+            raise ImportError(
+                "pypdfium2 is required to render PDF pages for OCR. "
+                "Install it with: pip install pypdfium2"
+            )
 
         model = self._load_model()
+        pdf = pdfium.PdfDocument(str(pdf_path))
+        page_texts = []
 
-        result = model.ocr(str(pdf_path), cls=True)
-        extracted_lines = []
+        try:
+            for page in pdf:
+                image = page.render(scale=2).to_numpy()
+                if image.ndim == 3 and image.shape[2] == 4:
+                    image = image[:, :, :3]
+                result = model.predict(input=image)
+                page_texts.append("\n".join(self._recognized_texts(result)))
+        finally:
+            pdf.close()
 
-        for page in result:
-            if not page:
-                continue
-            for line in page:
-                text = line[1][0] if isinstance(line, list) and len(line) > 1 else ""
-                if text:
-                    extracted_lines.append(text)
+        return page_texts
 
-        return "\n".join(extracted_lines)
+    def run_ocr(self, pdf_path: str | Path) -> str:
+        """Run OCR on a PDF or image file and return combined extracted text."""
+        return "\n\n".join(self.run_ocr_pages(pdf_path))
 
 
 def run_ocr(pdf_path: str | Path) -> str:
     """Convenience function for OCR execution."""
     processor = OCRProcessor()
     return processor.run_ocr(pdf_path)
+
+
+def run_ocr_pages(pdf_path: str | Path) -> list[str]:
+    """Convenience function returning one OCR text string per PDF page."""
+    processor = OCRProcessor()
+    return processor.run_ocr_pages(pdf_path)
 
 
 def should_run_ocr(text: str, min_words: int = 30) -> bool:

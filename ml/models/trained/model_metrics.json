@@ -1,0 +1,75 @@
+{
+  "model_version": "rf-mud-loss-v1",
+  "algorithm": "RandomForestClassifier",
+  "n_estimators": 150,
+  "max_depth": 8,
+  "train_metrics": {
+    "total_samples": 1314,
+    "positive_samples": 9,
+    "roc_auc": 1.0,
+    "pr_auc": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1_score": 1.0
+  },
+  "val_metrics": {
+    "total_samples": 313,
+    "positive_samples": 4,
+    "roc_auc": 1.0,
+    "pr_auc": 1.0,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0
+  },
+  "test_metrics": {
+    "total_samples": 315,
+    "positive_samples": 3,
+    "roc_auc": 1.0,
+    "pr_auc": 1.0,
+    "precision": 1.0,
+    "recall": 0.3333,
+    "f1_score": 0.5
+  },
+  "top_features": [
+    {
+      "feature": "flow_rate_gpm",
+      "importance": 0.1777
+    },
+    {
+      "feature": "rop_mhr",
+      "importance": 0.1772
+    },
+    {
+      "feature": "spp_psi",
+      "importance": 0.1403
+    },
+    {
+      "feature": "depth_md",
+      "importance": 0.0954
+    },
+    {
+      "feature": "wob_klbs",
+      "importance": 0.0637
+    },
+    {
+      "feature": "torque_kftlb",
+      "importance": 0.0541
+    },
+    {
+      "feature": "rpm",
+      "importance": 0.0442
+    },
+    {
+      "feature": "max_offset_similarity",
+      "importance": 0.038
+    },
+    {
+      "feature": "offset_hazard_density",
+      "importance": 0.0346
+    },
+    {
+      "feature": "mud_weight_ppg",
+      "importance": 0.0324
+    }
+  ]
+}

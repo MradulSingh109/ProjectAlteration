@@ -1,0 +1,61 @@
+# Risk Prediction Dataset and Modeling Config for NWIS (Step 11 & 12)
+
+dataset:
+  depth_step_m: 10.0
+  start_depth_m: 1800.0
+  spatial_radius_km: 25.0
+  random_seed: 42
+  split_wells:
+    train:
+      - "DLJ-07"
+      - "DLJ-12"
+      - "DLJ-21"
+      - "HGJ-02"
+      - "NHR-04"
+      - "W-076"
+      - "W-093"
+      - "W-105"
+    val:
+      - "DLJ-18"
+      - "W-098"
+    test:
+      - "NHK-07"
+      - "W-087"
+
+features:
+  telemetry_numeric:
+    - "depth_md"
+    - "rop_mhr"
+    - "wob_klbs"
+    - "rpm"
+    - "torque_kftlb"
+    - "spp_psi"
+    - "flow_rate_gpm"
+    - "mud_weight_ppg"
+    - "ecd_ppg"
+  spatial_offset:
+    - "offset_wells_count_in_radius"
+    - "max_offset_similarity"
+    - "offset_mud_loss_count"
+    - "offset_stuck_pipe_count"
+    - "offset_kick_count"
+    - "offset_torque_spike_count"
+    - "nearest_hazard_distance_km"
+    - "offset_hazard_density"
+  categorical:
+    - "formation"
+    - "lithology"
+
+targets:
+  primary_target: "is_mud_loss"
+  secondary_targets:
+    - "is_stuck_pipe"
+    - "is_kick"
+    - "hazard_event_type"
+    - "risk_level"
+
+paths:
+  wells_csv: "data/processed/good_data_processed/historical_dataset/wells.csv"
+  events_csv: "data/processed/good_data_processed/historical_dataset/events.csv"
+  output_csv: "data/processed/risk_prediction_dataset.csv"
+  output_parquet: "data/processed/risk_prediction_dataset.parquet"
