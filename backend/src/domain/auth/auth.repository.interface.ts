@@ -1,27 +1,30 @@
-import { User, Session } from "@prisma/client";
 import { Role } from "./roles";
+import { UserEntity } from "./user.entity";
+import { SessionEntity, SessionWithUser } from "./session.entity";
 
+/**
+ * Domain repository contract for authentication and session persistence.
+ * Completely decoupled from specific ORM/database technologies (Clean Architecture).
+ */
 export interface IAuthRepository {
-  findUserByEmail(email: string): Promise<User | null>;
-  findUserById(id: string): Promise<User | null>;
+  findUserByEmail(email: string): Promise<UserEntity | null>;
+  findUserById(id: string): Promise<UserEntity | null>;
   createUser(data: {
     email: string;
     passwordHash: string;
     role?: Role;
-  }): Promise<User>;
+  }): Promise<UserEntity>;
   createSession(data: {
     userId: string;
     refreshTokenHash?: string;
     expiresAt: Date;
     userAgent?: string;
     ipAddress?: string;
-  }): Promise<Session>;
-  findSessionById(
-    sessionId: string,
-  ): Promise<(Session & { user: User }) | null>;
+  }): Promise<SessionEntity>;
+  findSessionById(sessionId: string): Promise<SessionWithUser | null>;
   findSessionByRefreshTokenHash(
     tokenHash: string,
-  ): Promise<(Session & { user: User }) | null>;
+  ): Promise<SessionWithUser | null>;
   revokeSession(sessionId: string): Promise<void>;
   revokeAllUserSessions(userId: string): Promise<void>;
   touchSession(sessionId: string): Promise<void>;

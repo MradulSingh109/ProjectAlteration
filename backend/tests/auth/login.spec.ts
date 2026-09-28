@@ -6,13 +6,14 @@ import { IPasswordService } from "@/infrastructure/auth/password.service";
 import { IJwtService } from "@/infrastructure/auth/jwt.service";
 import { Role } from "@/domain/auth/roles";
 import { AppError } from "@/lib/errors";
-import { User, Session } from "@prisma/client";
+import { UserEntity } from "@/domain/auth/user.entity";
+import { SessionEntity } from "@/domain/auth/session.entity";
 
-function createMockRepository(users: User[] = []): {
+function createMockRepository(users: UserEntity[] = []): {
   repo: IAuthRepository;
-  sessions: Session[];
+  sessions: SessionEntity[];
 } {
-  const sessions: Session[] = [];
+  const sessions: SessionEntity[] = [];
   const repo: IAuthRepository = {
     findUserByEmail: vi.fn(
       async (email: string) => users.find((u) => u.email === email) || null,
@@ -22,7 +23,7 @@ function createMockRepository(users: User[] = []): {
     ),
     createUser: vi.fn(),
     createSession: vi.fn(async (data) => {
-      const s: Session = {
+      const s: SessionEntity = {
         id: "mock-session-uuid",
         userId: data.userId,
         refreshTokenHash: data.refreshTokenHash || null,
@@ -56,11 +57,11 @@ function createMockRepository(users: User[] = []): {
 }
 
 describe("User Authentication & Session Creation", () => {
-  const testUser: User = {
+  const testUser: UserEntity = {
     id: "user-123",
     email: "drilling.eng@nwis.gov.in",
     passwordHash: "correct_password_hash",
-    role: "DRILLING_ENGINEER",
+    role: Role.DRILLING_ENGINEER,
     isActive: true,
     createdAt: new Date(),
     updatedAt: new Date(),

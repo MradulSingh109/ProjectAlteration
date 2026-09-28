@@ -1,6 +1,20 @@
 import { Role } from "./roles";
 
 /**
+ * Domain User entity representing an authenticated actor in the NWIS system.
+ * Independent of ORM / persistence models.
+ */
+export interface UserEntity {
+  id: string;
+  email: string;
+  passwordHash: string;
+  role: Role;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
  * Safe client-facing user model excluding password hash, tokens, or private credentials.
  */
 export interface SafeUser {

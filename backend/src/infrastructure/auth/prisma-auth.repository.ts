@@ -1,33 +1,38 @@
 import { prisma } from "@/infrastructure/database/prisma";
 import { IAuthRepository } from "@/domain/auth/auth.repository.interface";
 import { Role as DomainRole } from "@/domain/auth/roles";
-import { User, Session, Role as PrismaRole } from "@prisma/client";
+import { UserEntity } from "@/domain/auth/user.entity";
+import { SessionEntity, SessionWithUser } from "@/domain/auth/session.entity";
+import { Role as PrismaRole } from "@prisma/client";
 
 export class PrismaAuthRepository implements IAuthRepository {
-  async findUserByEmail(email: string): Promise<User | null> {
-    return prisma.user.findUnique({
+  async findUserByEmail(email: string): Promise<UserEntity | null> {
+    const user = await prisma.user.findUnique({
       where: { email },
     });
+    return (user as UserEntity) || null;
   }
 
-  async findUserById(id: string): Promise<User | null> {
-    return prisma.user.findUnique({
+  async findUserById(id: string): Promise<UserEntity | null> {
+    const user = await prisma.user.findUnique({
       where: { id },
     });
+    return (user as UserEntity) || null;
   }
 
   async createUser(data: {
     email: string;
     passwordHash: string;
     role?: DomainRole;
-  }): Promise<User> {
-    return prisma.user.create({
+  }): Promise<UserEntity> {
+    const user = await prisma.user.create({
       data: {
         email: data.email,
         passwordHash: data.passwordHash,
         role: (data.role as PrismaRole) || PrismaRole.VIEWER,
       },
     });
+    return user as UserEntity;
   }
 
   async createSession(data: {
@@ -36,8 +41,8 @@ export class PrismaAuthRepository implements IAuthRepository {
     expiresAt: Date;
     userAgent?: string;
     ipAddress?: string;
-  }): Promise<Session> {
-    return prisma.session.create({
+  }): Promise<SessionEntity> {
+    const session = await prisma.session.create({
       data: {
         userId: data.userId,
         refreshTokenHash: data.refreshTokenHash,
@@ -46,24 +51,25 @@ export class PrismaAuthRepository implements IAuthRepository {
         ipAddress: data.ipAddress,
       },
     });
+    return session as SessionEntity;
   }
 
-  async findSessionById(
-    sessionId: string,
-  ): Promise<(Session & { user: User }) | null> {
-    return prisma.session.findUnique({
+  async findSessionById(sessionId: string): Promise<SessionWithUser | null> {
+    const session = await prisma.session.findUnique({
       where: { id: sessionId },
       include: { user: true },
     });
+    return (session as unknown as SessionWithUser) || null;
   }
 
   async findSessionByRefreshTokenHash(
     tokenHash: string,
-  ): Promise<(Session & { user: User }) | null> {
-    return prisma.session.findUnique({
+  ): Promise<SessionWithUser | null> {
+    const session = await prisma.session.findUnique({
       where: { refreshTokenHash: tokenHash },
       include: { user: true },
     });
+    return (session as unknown as SessionWithUser) || null;
   }
 
   async revokeSession(sessionId: string): Promise<void> {

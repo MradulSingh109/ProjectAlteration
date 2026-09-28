@@ -5,9 +5,11 @@ import { IPasswordService } from "@/infrastructure/auth/password.service";
 import { IJwtService } from "@/infrastructure/auth/jwt.service";
 import { Role } from "@/domain/auth/roles";
 import { AppError } from "@/lib/errors";
-import { User } from "@prisma/client";
+import { UserEntity } from "@/domain/auth/user.entity";
 
-function createMockRepository(existingUsers: User[] = []): IAuthRepository {
+function createMockRepository(
+  existingUsers: UserEntity[] = [],
+): IAuthRepository {
   const users = [...existingUsers];
   return {
     findUserByEmail: vi.fn(
@@ -18,11 +20,11 @@ function createMockRepository(existingUsers: User[] = []): IAuthRepository {
     ),
     createUser: vi.fn(
       async (data: { email: string; passwordHash: string; role?: Role }) => {
-        const newUser: User = {
+        const newUser: UserEntity = {
           id: "mock-user-uuid",
           email: data.email,
           passwordHash: data.passwordHash,
-          role: (data.role as any) || "VIEWER",
+          role: data.role || Role.VIEWER,
           isActive: true,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -127,11 +129,11 @@ describe("User Registration & Privilege Escalation Prevention", () => {
   });
 
   it("rejects duplicate email registrations with EMAIL_ALREADY_EXISTS conflict", async () => {
-    const existingUser: User = {
+    const existingUser: UserEntity = {
       id: "existing-uuid",
       email: "existing@nwis.gov.in",
       passwordHash: "hashed_Existing123",
-      role: "VIEWER",
+      role: Role.VIEWER,
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
