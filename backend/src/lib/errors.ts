@@ -13,6 +13,7 @@ export type ErrorCode =
   | "BAD_REQUEST"
   | "INVALID_CREDENTIALS"
   | "EMAIL_ALREADY_EXISTS"
+  | "CONFLICT"
   | "SESSION_EXPIRED"
   | "INVALID_TOKEN";
 
@@ -66,10 +67,7 @@ export class AppError extends Error {
     return new AppError(message, 404, "NOT_FOUND");
   }
 
-  static conflict(
-    message: string,
-    code: ErrorCode = "EMAIL_ALREADY_EXISTS",
-  ): AppError {
+  static conflict(message: string, code: ErrorCode = "CONFLICT"): AppError {
     return new AppError(message, 409, code);
   }
 

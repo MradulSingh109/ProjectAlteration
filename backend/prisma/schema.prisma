@@ -59,3 +59,52 @@ model Session {
   @@index([userId])
   @@map("sessions")
 }
+
+/// Operational well lifecycle status
+enum WellStatus {
+  PLANNED
+  DRILLING
+  COMPLETED
+  ABANDONED
+}
+
+/// Core Well master record for PS 121
+model Well {
+  id              String      @id @default(uuid())
+  wellId          String      @unique @map("well_id")
+  name            String
+  field           String
+  latitude        Float
+  longitude       Float
+  spudDate        DateTime?   @map("spud_date")
+  plannedDepthMd  Float       @map("planned_depth_md")
+  plannedDepthTvd Float       @map("planned_depth_tvd")
+  status          WellStatus  @default(PLANNED)
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  formations      Formation[]
+
+  @@index([field])
+  @@index([status])
+  @@index([latitude, longitude])
+  @@map("wells")
+}
+
+/// Geological stratigraphy/formation interval associated with a well
+model Formation {
+  id        String   @id @default(uuid())
+  wellId    String   @map("well_id")
+  name      String
+  topMd     Float    @map("top_md")
+  bottomMd  Float    @map("bottom_md")
+  lithology String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  well Well @relation(fields: [wellId], references: [id], onDelete: Cascade)
+
+  @@index([wellId])
+  @@index([name])
+  @@map("formations")
+}
+
