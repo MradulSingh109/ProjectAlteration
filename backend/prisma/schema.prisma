@@ -84,6 +84,7 @@ model Well {
   updatedAt       DateTime    @updatedAt @map("updated_at")
   formations      Formation[]
   documents       Document[]
+  events          DrillingEvent[]
 
   @@index([field])
   @@index([status])
@@ -144,6 +145,7 @@ model Document {
   updatedAt       DateTime        @updatedAt @map("updated_at")
 
   well Well @relation(fields: [wellId], references: [id], onDelete: Restrict)
+  events DrillingEvent[]
 
   @@index([wellId], name: "idx_documents_well_id")
   @@index([documentType], name: "idx_documents_type")
@@ -152,4 +154,72 @@ model Document {
   @@unique([wellId, fileHash], map: "uq_well_document_file_hash")
   @@map("documents")
 }
+
+/// Drilling event taxonomy for PS 121
+enum EventType {
+  MUD_LOSS
+  KICK
+  STUCK_PIPE
+  FISHING
+  TORQUE_SPIKE
+  PRESSURE_SPIKE
+  OVERPRESSURE
+  LOST_CIRCULATION
+  CEMENTING_FAILURE
+  CASING_PROBLEM
+  NPT
+  FORMATION_CHANGE
+  WELL_CONTROL
+}
+
+/// Operational event severity classification
+enum EventSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+/// Human review workflow lifecycle state
+enum ReviewStatus {
+  PENDING_REVIEW
+  APPROVED
+  EDITED
+  INVALIDATED
+}
+
+/// Drilling operational event extracted from historical technical documentation
+model DrillingEvent {
+  id                   String        @id @default(uuid())
+  wellId               String        @map("well_id")
+  eventType            EventType     @map("event_type")
+  depthMd              Decimal       @map("depth_md") @db.Decimal(12, 3)
+  depthTvd             Decimal?      @map("depth_tvd") @db.Decimal(12, 3)
+  formation            String?       @map("formation")
+  severity             EventSeverity @map("severity")
+  description          String        @map("description")
+  cause                String?       @map("cause")
+  mitigation           String?       @map("mitigation")
+  outcome              String?       @map("outcome")
+  sourceDocumentId     String        @map("source_document_id")
+  sourcePage           Int           @map("source_page")
+  extractionConfidence Decimal       @map("extraction_confidence") @db.Decimal(4, 3)
+  reviewStatus         ReviewStatus  @default(PENDING_REVIEW) @map("review_status")
+  reviewedBy           String?       @map("reviewed_by")
+  reviewedAt           DateTime?     @map("reviewed_at")
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @updatedAt @map("updated_at")
+
+  well           Well     @relation(fields: [wellId], references: [id], onDelete: Restrict)
+  sourceDocument Document @relation(fields: [sourceDocumentId], references: [id], onDelete: Restrict)
+
+  @@index([wellId], name: "idx_drilling_events_well_id")
+  @@index([eventType], name: "idx_drilling_events_type")
+  @@index([reviewStatus], name: "idx_drilling_events_review_status")
+  @@index([severity], name: "idx_drilling_events_severity")
+  @@index([sourceDocumentId], name: "idx_drilling_events_source_doc")
+  @@index([wellId, reviewStatus], name: "idx_drilling_events_well_review")
+  @@map("drilling_events")
+}
+
 

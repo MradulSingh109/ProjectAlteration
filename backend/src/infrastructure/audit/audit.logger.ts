@@ -11,7 +11,11 @@ export interface AuditLogEntry {
     | "DOCUMENT_RETRIEVE"
     | "DOCUMENT_METADATA_READ"
     | "DOCUMENT_DELETE"
-    | "AUTHORIZATION_FAILURE";
+    | "AUTHORIZATION_FAILURE"
+    | "EVENT_CREATE"
+    | "EVENT_APPROVE"
+    | "EVENT_EDIT"
+    | "EVENT_INVALIDATE";
   actorId?: string;
   actorRole?: string;
   resourceId?: string;
