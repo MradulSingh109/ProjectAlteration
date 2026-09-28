@@ -14,7 +14,7 @@ interface RouteParams {
 /**
  * POST /api/v1/alerts/:id/resolve
  *
- * Transitions an alert from ACTIVE or ACKNOWLEDGED to RESOLVED.
+ * Transitions an alert from ACKNOWLEDGED to RESOLVED.
  * Records resolving operator identity, server timestamp, and optional resolution notes.
  *
  * RBAC: Restricted to operational roles (ADMIN, DRILLING_ENGINEER, GEOLOGIST).
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       parsed.data.resolutionNotes,
     );
 
-    return successResponse({ alert }, 200);
+    return successResponse(alert, 200);
   } catch (error) {
     return errorResponse(error);
   }

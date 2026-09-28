@@ -35,7 +35,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       user.role,
     );
 
-    return successResponse({ alert }, 200);
+    return successResponse(alert, 200);
   } catch (error) {
     return errorResponse(error);
   }

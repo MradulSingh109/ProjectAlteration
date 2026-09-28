@@ -26,8 +26,8 @@ export interface PaginatedAlertsResponseDto {
  * Application service managing alert queries and lifecycle state machine.
  * Enforces valid state transitions:
  * - ACTIVE -> ACKNOWLEDGED
- * - ACTIVE -> RESOLVED
  * - ACKNOWLEDGED -> RESOLVED
+ * - Direct ACTIVE -> RESOLVED is rejected (must acknowledge first).
  * - Reopening or invalid transitions are strictly rejected.
  */
 export class AlertLifecycleService {
@@ -116,7 +116,9 @@ export class AlertLifecycleService {
   }
 
   /**
-   * Resolves an active or acknowledged alert.
+   * Resolves an acknowledged alert.
+   * An alert must be acknowledged before it can be resolved.
+   * Direct ACTIVE -> RESOLVED transition is rejected.
    */
   async resolveAlert(
     alertId: string,
@@ -131,6 +133,12 @@ export class AlertLifecycleService {
 
     if (alert.status === AlertStatus.RESOLVED) {
       throw AppError.badRequest("Alert has already been resolved");
+    }
+
+    if (alert.status === AlertStatus.ACTIVE) {
+      throw AppError.badRequest(
+        "Alert must be acknowledged before it can be resolved. Transition ACTIVE -> RESOLVED is not permitted.",
+      );
     }
 
     const updated = await this.alertRepo.updateStatus(alertId, {
