@@ -18,3 +18,44 @@ model DatabaseHealthCheck {
 
   @@map("database_health_checks")
 }
+
+/// Role-based access control roles for PS 121
+enum Role {
+  ADMIN
+  DRILLING_ENGINEER
+  GEOLOGIST
+  VIEWER
+}
+
+/// Core User entity representing authenticated domain actors
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         Role      @default(VIEWER)
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  sessions     Session[]
+
+  @@map("users")
+}
+
+/// Persistent authentication session enabling revocation and refresh security
+model Session {
+  id               String    @id @default(uuid())
+  userId           String    @map("user_id")
+  refreshTokenHash String?   @unique @map("refresh_token_hash")
+  isRevoked        Boolean   @default(false) @map("is_revoked")
+  expiresAt        DateTime  @map("expires_at")
+  userAgent        String?   @map("user_agent")
+  ipAddress        String?   @map("ip_address")
+  lastUsedAt       DateTime? @default(now()) @map("last_used_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}

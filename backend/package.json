@@ -9,21 +9,27 @@
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx,js,mjs,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,json,md}\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@neon/config": "^1.8.2",
     "@neon/env": "^1.4.7",
     "@prisma/client": "^6.19.3",
-    "next": "16.3.6"
+    "bcryptjs": "^3.0.3",
+    "jose": "^6.2.12",
+    "next": "16.3.6",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^24.19.0",
     "@types/react": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
     "prettier": "^3.5.3",
     "prisma": "^6.19.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.0.2"
   }
 }

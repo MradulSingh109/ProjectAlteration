@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ZodError } from "zod";
 import { AppError } from "./errors";
 
 export interface ApiResponse<T = unknown> {
@@ -11,12 +12,16 @@ export interface ApiResponse<T = unknown> {
   };
 }
 
-export function successResponse<T>(data: T, status: number = 200) {
+export function successResponse<T>(
+  data: T,
+  status: number = 200,
+  headers?: HeadersInit,
+) {
   const body: ApiResponse<T> = {
     success: true,
     data,
   };
-  return NextResponse.json(body, { status });
+  return NextResponse.json(body, { status, headers });
 }
 
 export function errorResponse(error: unknown) {
@@ -32,8 +37,28 @@ export function errorResponse(error: unknown) {
     return NextResponse.json(body, { status: error.statusCode });
   }
 
-  const message =
-    error instanceof Error ? error.message : "An unexpected error occurred";
+  if (error instanceof ZodError) {
+    const formatted = error.issues.map((err) => ({
+      field: err.path.join("."),
+      message: err.message,
+    }));
+    const body: ApiResponse = {
+      success: false,
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Validation failed",
+        details: formatted,
+      },
+    };
+    return NextResponse.json(body, { status: 400 });
+  }
+
+  const isProd = process.env.NODE_ENV === "production";
+  const message = isProd
+    ? "An unexpected internal error occurred"
+    : error instanceof Error
+      ? error.message
+      : "An unexpected error occurred";
 
   const body: ApiResponse = {
     success: false,
