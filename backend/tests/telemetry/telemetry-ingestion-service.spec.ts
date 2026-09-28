@@ -82,6 +82,7 @@ describe("Telemetry Ingestion Service & Idempotency", () => {
   beforeEach(() => {
     mockTelemetryRepo = {
       create: vi.fn().mockResolvedValue(sampleReading),
+      findById: vi.fn().mockResolvedValue(sampleReading),
       findByWellSourceSequence: vi.fn().mockResolvedValue(null),
       listByWellId: vi.fn().mockResolvedValue({
         wellId: "well-uuid-1",

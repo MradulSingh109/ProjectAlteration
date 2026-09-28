@@ -86,6 +86,7 @@ model Well {
   documents       Document[]
   events          DrillingEvent[]
   telemetryReadings TelemetryReading[]
+  alerts          Alert[]
 
   @@index([field])
   @@index([status])
@@ -267,9 +268,84 @@ model TelemetryReading {
   createdAt          DateTime @default(now()) @map("created_at")
 
   well Well @relation(fields: [wellId], references: [id], onDelete: Restrict)
+  alerts Alert[]
 
   @@unique([wellId, sourceId, sequenceNumber], map: "uq_telemetry_well_source_seq")
   @@index([wellId, timestamp], name: "idx_telemetry_well_timestamp")
   @@index([timestamp], name: "idx_telemetry_timestamp")
   @@map("telemetry_readings")
+}
+
+/// Lifecycle state of an alert
+enum AlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+/// Alert rule definition with stable code and category
+model AlertRule {
+  id          String             @id @default(uuid())
+  ruleCode    String             @unique @map("rule_code")
+  name        String
+  description String
+  eventType   EventType          @map("event_type")
+  isEnabled   Boolean            @default(true) @map("is_enabled")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+  versions    AlertRuleVersion[]
+
+  @@map("alert_rules")
+}
+
+/// Immutable versioned configuration snapshot for an alert rule
+model AlertRuleVersion {
+  id          String        @id @default(uuid())
+  ruleId      String        @map("rule_id")
+  version     Int
+  isActive    Boolean       @default(false) @map("is_active")
+  severity    EventSeverity
+  conditions  Json          @map("conditions")
+  description String?
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  rule   AlertRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  alerts Alert[]
+
+  @@unique([ruleId, version], map: "uq_alert_rule_version")
+  @@index([ruleId, isActive], name: "idx_alert_rule_version_active")
+  @@map("alert_rule_versions")
+}
+
+/// Persistent, auditable alert generated from telemetry evaluation
+model Alert {
+  id                 String           @id @default(uuid())
+  wellId             String           @map("well_id")
+  ruleVersionId      String           @map("rule_version_id")
+  telemetryReadingId String           @map("telemetry_reading_id")
+  alertType          String           @map("alert_type")
+  severity           EventSeverity
+  status             AlertStatus      @default(ACTIVE)
+  triggeredAt        DateTime         @map("triggered_at")
+  acknowledgedAt     DateTime?        @map("acknowledged_at")
+  acknowledgedBy     String?          @map("acknowledged_by")
+  resolvedAt         DateTime?        @map("resolved_at")
+  resolvedBy         String?          @map("resolved_by")
+  resolutionNotes    String?          @map("resolution_notes")
+  explanation        String           @map("explanation")
+  evidence           Json             @map("evidence")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+
+  well             Well             @relation(fields: [wellId], references: [id], onDelete: Restrict)
+  ruleVersion      AlertRuleVersion @relation(fields: [ruleVersionId], references: [id], onDelete: Restrict)
+  telemetryReading TelemetryReading @relation(fields: [telemetryReadingId], references: [id], onDelete: Restrict)
+
+  @@unique([telemetryReadingId, ruleVersionId], map: "uq_alert_reading_rule_version")
+  @@index([wellId, status], name: "idx_alerts_well_status")
+  @@index([wellId, triggeredAt], name: "idx_alerts_well_triggered")
+  @@index([status], name: "idx_alerts_status")
+  @@index([severity], name: "idx_alerts_severity")
+  @@index([ruleVersionId], name: "idx_alerts_rule_version")
+  @@map("alerts")
 }

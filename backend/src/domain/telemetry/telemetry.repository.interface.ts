@@ -17,6 +17,11 @@ export interface ITelemetryRepository {
   create(data: CreateTelemetryInput): Promise<CanonicalTelemetryReading>;
 
   /**
+   * Finds an existing telemetry reading by its unique ID.
+   */
+  findById(id: string): Promise<CanonicalTelemetryReading | null>;
+
+  /**
    * Finds an existing telemetry reading by the idempotency tuple (wellId, sourceId, sequenceNumber).
    */
   findByWellSourceSequence(

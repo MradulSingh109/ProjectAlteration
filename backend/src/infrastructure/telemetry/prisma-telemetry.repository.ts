@@ -133,6 +133,14 @@ export class PrismaTelemetryRepository implements ITelemetryRepository {
     return mapTelemetryReading(row);
   }
 
+  async findById(id: string): Promise<CanonicalTelemetryReading | null> {
+    const row = await this.prismaClient.telemetryReading.findUnique({
+      where: { id },
+    });
+
+    return row ? mapTelemetryReading(row) : null;
+  }
+
   async findByWellSourceSequence(
     wellId: string,
     sourceId: string,

@@ -181,3 +181,170 @@ Each telemetry reading consists of:
   - `400 Bad Request`: Invalid parameters (e.g. `from > to`, `pageSize > 200`).
   - `401 Unauthorized`: User not authenticated.
   - `404 Not Found`: Well not found.
+
+---
+
+## Step 11: Rule-Based Alert Engine
+
+### Architecture & Design Principles
+
+The NWIS Alert Engine is a deterministic, explainable, backend-only rule evaluation engine built directly upon the telemetry foundation of Step 10:
+
+```text
+TelemetryReading (PostgreSQL)
+          ↓
+RuleEvaluationService (Single reading or bounded time-series range)
+          ↓
+IAlertRuleRepository (PrismaAlertRuleRepository — Resolves active rule versions)
+          ↓
+IRuleEvaluator (DeterministicRuleEvaluator — Pure domain evaluation)
+          ↓
+EvaluationOutcome (Triggered / Not Triggered, Evidence Snapshot, Explanation)
+          ↓
+IAlertRepository (PrismaAlertRepository — Database-enforced idempotency)
+          ↓
+AuditLogService (Durable audit log: ALERT_GENERATE)
+```
+
+**Key Architectural Guarantees:**
+
+- **Deterministic & Explainable:** Rule evaluation is a pure function of `(TelemetryReading, AlertRuleVersion)`. No AI, machine learning, probabilistic scoring, or random seeds are used.
+- **Server-Side Templates:** Human-readable explanations are generated using deterministic templates capturing the exact rule name, observed value, unit, threshold condition, and timestamp.
+- **Transport & Storage Decoupled:** Evaluation logic does not depend on HTTP, Next.js, or external message queues; it can be invoked manually via REST APIs or asynchronously by background workers.
+
+---
+
+### Initial Rule Set & Demonstration Thresholds
+
+> [!IMPORTANT]
+> **Domain Calibration Notice:**
+> The threshold values listed below are **configurable demonstration defaults** established for development and deterministic testing. They are **NOT** claimed to be official Oil India Limited (OIL) engineering limits or authoritative field standards. Production deployments require formal calibration and sign-off by drilling domain experts.
+
+1. **Pressure Spike Anomaly (`PRESSURE_SPIKE_DETECT`, v1.0.0)**
+   - **Signal:** `standpipePressure` (psi)
+   - **Condition:** `standpipePressure > 4500 psi`
+   - **Severity:** `HIGH`
+   - **Type:** Single-reading threshold evaluation
+   - **Explanation Template:** `"Standpipe pressure of {observed} psi exceeded demonstration threshold of {threshold} psi."`
+
+2. **Torque Spike Anomaly (`TORQUE_SPIKE_DETECT`, v1.0.0)**
+   - **Signal:** `surfaceTorque` (ft-lbf)
+   - **Condition:** `surfaceTorque > 18000 ft-lbf`
+   - **Severity:** `HIGH`
+   - **Type:** Single-reading threshold evaluation
+   - **Explanation Template:** `"Surface torque of {observed} ft-lbf exceeded demonstration threshold of {threshold} ft-lbf."`
+
+3. **Mud Flow Discrepancy Indicator (`MUD_FLOW_DISCREPANCY_DETECT`, v1.0.0)**
+   - **Signal:** `flowRateIn` and `flowRateOut` (gpm)
+   - **Condition:** `(flowRateIn - flowRateOut) > 50 gpm`
+   - **Severity:** `MEDIUM`
+   - **Type:** Paired-signal delta comparison
+   - **Explanation Template:** `"Mud flow discrepancy: flow-in ({in} gpm) exceeds flow-out ({out} gpm) by {delta} gpm, exceeding threshold of {threshold} gpm (potential lost-circulation or pump imbalance indicator)."`
+
+---
+
+### Rule Versioning & Snapshotting
+
+- Rules (`AlertRule`) and versions (`AlertRuleVersion`) have immutable behavioral identities.
+- Active versions are marked via `isActive = true`.
+- When an alert is triggered, it persists a full `evidence` JSON snapshot containing:
+  - Exact rule version ID and version number
+  - Target metric(s) and observed numeric values
+  - Unit of measurement
+  - Configured threshold value and operator
+  - Measurement depth (`depthMd`) and measurement timestamp
+- Modifying a rule's threshold in the future requires creating a new version; historical alerts remain permanently bound to their originating version and evidence snapshot.
+
+---
+
+### Alert Lifecycle State Machine
+
+Alerts progress through a strictly enforced finite state machine:
+
+```text
+[ACTIVE] ──(acknowledge)──> [ACKNOWLEDGED] ──(resolve)──> [RESOLVED]
+```
+
+- **Transitions Permitted:**
+  - `ACTIVE` → `ACKNOWLEDGED`
+  - `ACKNOWLEDGED` → `RESOLVED`
+- **Transitions Rejected (HTTP 400 Bad Request):**
+  - `ACTIVE` → `RESOLVED` (Direct resolution requires prior acknowledgement)
+  - `RESOLVED` → `ACTIVE` or `ACKNOWLEDGED` (Terminal state; no reopening)
+  - `ACKNOWLEDGED` → `ACTIVE`
+- **Metadata Recorded:**
+  - `acknowledgedAt`, `acknowledgedById`
+  - `resolvedAt`, `resolvedById`, `resolutionNote`
+
+---
+
+### Idempotency & Concurrency Safety
+
+- **Database-Level Constraint:** `@@unique([telemetryReadingId, ruleVersionId], map: "uq_alert_reading_rule_version")`.
+- Evaluating the same telemetry reading against the same active rule version multiple times will **never create duplicate alerts**.
+- Concurrent evaluations racing on the same reading/rule pair are caught via PostgreSQL unique constraint violations (`P2002`) and resolved deterministically to the existing alert.
+
+---
+
+### Role-Based Access Control (RBAC)
+
+| Role                | Read Alerts (`GET`) | Evaluate Telemetry (`POST`) | Acknowledge Alert (`POST`) | Resolve Alert (`POST`) |
+| :------------------ | :-----------------: | :-------------------------: | :------------------------: | :--------------------: |
+| `VIEWER`            |       Allowed       |      Forbidden (`403`)      |     Forbidden (`403`)      |   Forbidden (`403`)    |
+| `GEOLOGIST`         |       Allowed       |      Forbidden (`403`)      |     Forbidden (`403`)      |   Forbidden (`403`)    |
+| `DRILLING_ENGINEER` |       Allowed       |     Allowed (`200/201`)     |      Allowed (`200`)       |    Allowed (`200`)     |
+| `ADMIN`             |       Allowed       |       Allowed (`201`)       |      Allowed (`200`)       |    Allowed (`200`)     |
+
+---
+
+### Audit Logging
+
+Durable audit entries are emitted via `AuditLogService` using safe metadata:
+
+- `ALERT_GENERATE`: Records `alertId`, `wellId`, `ruleCode`, `ruleVersionId`, `telemetryReadingId`, `severity`.
+- `ALERT_ACKNOWLEDGE`: Records `alertId`, `previousStatus`, `newStatus`, `acknowledgedById`.
+- `ALERT_RESOLVE`: Records `alertId`, `previousStatus`, `newStatus`, `resolvedById`, `hasResolutionNote`.
+- **Zero Secrets:** No authorization tokens, API keys, passwords, or PII are logged.
+
+---
+
+### Alert Engine Endpoints
+
+#### 1. Evaluate Single Telemetry Reading
+
+- **Method:** `POST /api/v1/telemetry/readings/:readingId/evaluate`
+- **Auth:** Session cookie or Bearer JWT (`ADMIN`, `DRILLING_ENGINEER`)
+- **Status Codes:** `200 OK`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`
+
+#### 2. Evaluate Telemetry Range for a Well
+
+- **Method:** `POST /api/v1/wells/:wellId/telemetry/evaluate`
+- **Auth:** Session cookie or Bearer JWT (`ADMIN`, `DRILLING_ENGINEER`)
+- **Body:** `{ "from": "ISO8601", "to": "ISO8601", "maxReadings": 200 }` (max 500)
+- **Status Codes:** `200 OK`, `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`
+
+#### 3. List Well Alerts
+
+- **Method:** `GET /api/v1/wells/:wellId/alerts`
+- **Auth:** Authenticated user (`VIEWER`, `GEOLOGIST`, `DRILLING_ENGINEER`, `ADMIN`)
+- **Query Params:** `status`, `severity`, `alertType`, `ruleCode`, `from`, `to`, `page`, `pageSize` (max 200), `sortOrder`
+- **Status Codes:** `200 OK`, `400 Bad Request`, `401 Unauthorized`, `404 Not Found`
+
+#### 4. Get Alert Detail
+
+- **Method:** `GET /api/v1/alerts/:alertId`
+- **Auth:** Authenticated user (`VIEWER`, `GEOLOGIST`, `DRILLING_ENGINEER`, `ADMIN`)
+- **Status Codes:** `200 OK`, `401 Unauthorized`, `404 Not Found`
+
+#### 5. Acknowledge Alert
+
+- **Method:** `POST /api/v1/alerts/:alertId/acknowledge`
+- **Auth:** Session cookie or Bearer JWT (`ADMIN`, `DRILLING_ENGINEER`)
+- **Status Codes:** `200 OK`, `400 Bad Request` (invalid transition), `401 Unauthorized`, `403 Forbidden`, `404 Not Found`
+
+#### 6. Resolve Alert
+
+- **Method:** `POST /api/v1/alerts/:alertId/resolve`
+- **Auth:** Session cookie or Bearer JWT (`ADMIN`, `DRILLING_ENGINEER`)
+- **Body:** `{ "resolutionNote": "Optional note (max 1000 chars)" }`
+- **Status Codes:** `200 OK`, `400 Bad Request` (invalid transition), `401 Unauthorized`, `403 Forbidden`, `404 Not Found`
