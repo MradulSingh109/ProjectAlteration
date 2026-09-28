@@ -20,6 +20,8 @@ const envSchema = z.object({
   AUTH_COOKIE_NAME: z.string().default("nwis_access_token"),
   REFRESH_COOKIE_NAME: z.string().default("nwis_refresh_token"),
   TRUSTED_ORIGINS: z.string().optional(),
+  DOCUMENT_STORAGE_PATH: z.string().default("storage/documents"),
+  MAX_DOCUMENT_SIZE_MB: z.coerce.number().default(25),
 });
 
 const isProd = process.env.NODE_ENV === "production";
@@ -68,5 +70,11 @@ export const config = {
       .split(",")
       .map((s) => s.trim().toLowerCase())
       .filter(Boolean),
+  },
+  storage: {
+    documentPath: process.env.DOCUMENT_STORAGE_PATH || "storage/documents",
+    maxDocumentSizeMb: parseInt(process.env.MAX_DOCUMENT_SIZE_MB || "25", 10),
+    maxDocumentSizeBytes:
+      parseInt(process.env.MAX_DOCUMENT_SIZE_MB || "25", 10) * 1024 * 1024,
   },
 } as const;

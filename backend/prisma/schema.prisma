@@ -83,6 +83,7 @@ model Well {
   createdAt       DateTime    @default(now()) @map("created_at")
   updatedAt       DateTime    @updatedAt @map("updated_at")
   formations      Formation[]
+  documents       Document[]
 
   @@index([field])
   @@index([status])
@@ -107,5 +108,48 @@ model Formation {
   @@index([wellId])
   @@index([name])
   @@map("formations")
+}
+
+/// Historical drilling document classification for PS 121
+enum DocumentType {
+  WCR
+  DDR
+  MUD_LOG
+  CEMENTING_REPORT
+  WELL_SURVEY
+}
+
+/// Asynchronous document ingestion lifecycle state
+enum IngestionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+/// Historical drilling and geological technical document
+model Document {
+  id              String          @id @default(uuid())
+  wellId          String          @map("well_id")
+  filename        String          @map("filename")
+  documentType    DocumentType    @map("document_type")
+  mimeType        String          @map("mime_type")
+  fileSize        Int             @map("file_size")
+  fileHash        String          @map("file_hash")
+  storageKey      String          @map("storage_key")
+  uploadedBy      String          @map("uploaded_by")
+  uploadedAt      DateTime        @default(now()) @map("uploaded_at")
+  ingestionStatus IngestionStatus @default(PENDING) @map("ingestion_status")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  well Well @relation(fields: [wellId], references: [id], onDelete: Restrict)
+
+  @@index([wellId], name: "idx_documents_well_id")
+  @@index([documentType], name: "idx_documents_type")
+  @@index([ingestionStatus], name: "idx_documents_ingestion_status")
+  @@index([fileHash], name: "idx_documents_file_hash")
+  @@unique([wellId, fileHash], map: "uq_well_document_file_hash")
+  @@map("documents")
 }
 
