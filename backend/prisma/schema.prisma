@@ -85,6 +85,7 @@ model Well {
   formations      Formation[]
   documents       Document[]
   events          DrillingEvent[]
+  telemetryReadings TelemetryReading[]
 
   @@index([field])
   @@index([status])
@@ -241,4 +242,34 @@ model AuditLog {
   @@index([wellId], name: "idx_audit_logs_well_id")
   @@index([createdAt], name: "idx_audit_logs_created_at")
   @@map("audit_logs")
+}
+
+/// Time-series real-time drilling telemetry measurement record for PS 121
+model TelemetryReading {
+  id                 String   @id @default(uuid())
+  wellId             String   @map("well_id")
+  sourceId           String   @map("source_id")
+  sequenceNumber     BigInt   @map("sequence_number")
+  timestamp          DateTime @map("timestamp")
+  depthMd            Decimal  @map("depth_md") @db.Decimal(12, 3)
+  depthTvd           Decimal? @map("depth_tvd") @db.Decimal(12, 3)
+  rateOfPenetration  Decimal? @map("rate_of_penetration") @db.Decimal(8, 3)
+  hookLoad           Decimal? @map("hook_load") @db.Decimal(10, 2)
+  standpipePressure  Decimal? @map("standpipe_pressure") @db.Decimal(10, 2)
+  annularPressure    Decimal? @map("annular_pressure") @db.Decimal(10, 2)
+  surfaceTorque      Decimal? @map("surface_torque") @db.Decimal(10, 2)
+  rotaryRpm          Decimal? @map("rotary_rpm") @db.Decimal(8, 2)
+  flowRateIn         Decimal? @map("flow_rate_in") @db.Decimal(10, 2)
+  flowRateOut        Decimal? @map("flow_rate_out") @db.Decimal(10, 2)
+  mudDensity         Decimal? @map("mud_density") @db.Decimal(6, 2)
+  metadata           Json?    @map("metadata")
+  ingestedAt         DateTime @default(now()) @map("ingested_at")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  well Well @relation(fields: [wellId], references: [id], onDelete: Restrict)
+
+  @@unique([wellId, sourceId, sequenceNumber], map: "uq_telemetry_well_source_seq")
+  @@index([wellId, timestamp], name: "idx_telemetry_well_timestamp")
+  @@index([timestamp], name: "idx_telemetry_timestamp")
+  @@map("telemetry_readings")
 }

@@ -22,6 +22,10 @@ const envSchema = z.object({
   TRUSTED_ORIGINS: z.string().optional(),
   DOCUMENT_STORAGE_PATH: z.string().default("storage/documents"),
   MAX_DOCUMENT_SIZE_MB: z.coerce.number().default(25),
+  TELEMETRY_API_KEY: z
+    .string()
+    .min(16, "TELEMETRY_API_KEY must be at least 16 characters long")
+    .optional(),
 });
 
 const isProd = process.env.NODE_ENV === "production";
@@ -43,6 +47,16 @@ const jwtSecret =
         );
       })()
     : "development_jwt_secret_min_32_characters_long_for_dev_test");
+
+const telemetryApiKey =
+  process.env.TELEMETRY_API_KEY ||
+  (isProd
+    ? (() => {
+        throw new Error(
+          "TELEMETRY_API_KEY must be configured with at least 16 characters in production.",
+        );
+      })()
+    : "dev_telemetry_secret_key_16_chars_min");
 
 export const config = {
   env: (process.env.NODE_ENV || "development") as
@@ -76,5 +90,8 @@ export const config = {
     maxDocumentSizeMb: parseInt(process.env.MAX_DOCUMENT_SIZE_MB || "25", 10),
     maxDocumentSizeBytes:
       parseInt(process.env.MAX_DOCUMENT_SIZE_MB || "25", 10) * 1024 * 1024,
+  },
+  telemetry: {
+    apiKey: telemetryApiKey,
   },
 } as const;
