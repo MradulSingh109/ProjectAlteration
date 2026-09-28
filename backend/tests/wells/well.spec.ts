@@ -165,6 +165,22 @@ describe("Well Domain Service & DTO Validation", () => {
       expect(repo.create).toHaveBeenCalledTimes(1);
     });
 
+    it("persists and retrieves millimeter precision decimal depths (3500.125, 3200.500) accurately", async () => {
+      const repo = createMockWellRepo([]);
+      const service = new WellService(repo);
+
+      const created = await service.createWell({
+        ...baseWellData,
+        wellId: "MH-DECIMAL-01",
+        plannedDepthMd: 3500.125,
+        plannedDepthTvd: 3200.5,
+      });
+
+      expect(created.wellId).toBe("MH-DECIMAL-01");
+      expect(Number(created.plannedDepthMd)).toBe(3500.125);
+      expect(Number(created.plannedDepthTvd)).toBe(3200.5);
+    });
+
     it("rejects duplicate Well ID with CONFLICT (409) error", async () => {
       const existingWell: WellEntity = {
         id: "existing-uuid-1",

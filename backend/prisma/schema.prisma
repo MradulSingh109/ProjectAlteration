@@ -77,8 +77,8 @@ model Well {
   latitude        Float
   longitude       Float
   spudDate        DateTime?   @map("spud_date")
-  plannedDepthMd  Float       @map("planned_depth_md")
-  plannedDepthTvd Float       @map("planned_depth_tvd")
+  plannedDepthMd  Decimal     @map("planned_depth_md") @db.Decimal(12, 3)
+  plannedDepthTvd Decimal     @map("planned_depth_tvd") @db.Decimal(12, 3)
   status          WellStatus  @default(PLANNED)
   createdAt       DateTime    @default(now()) @map("created_at")
   updatedAt       DateTime    @updatedAt @map("updated_at")
@@ -95,9 +95,10 @@ model Formation {
   id        String   @id @default(uuid())
   wellId    String   @map("well_id")
   name      String
-  topMd     Float    @map("top_md")
-  bottomMd  Float    @map("bottom_md")
+  topMd     Decimal  @map("top_md") @db.Decimal(12, 3)
+  bottomMd  Decimal  @map("bottom_md") @db.Decimal(12, 3)
   lithology String?
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

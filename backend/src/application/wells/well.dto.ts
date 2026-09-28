@@ -11,6 +11,26 @@ export const WELL_STATUS_VALUES = [
 ] as const;
 
 /**
+ * Reusable validator for non-negative depth decimal values (accepts numbers or valid decimal strings).
+ */
+export const depthDecimalValidator = (fieldName: string) =>
+  z
+    .union([
+      z.number({ message: `${fieldName} must be a number` }),
+      z.string({
+        message: `${fieldName} must be a valid decimal number or string`,
+      }),
+    ])
+    .refine(
+      (val) => {
+        const num = Number(val);
+        return !isNaN(num) && num >= 0;
+      },
+      { message: `${fieldName} cannot be negative` },
+    )
+    .transform((val) => (typeof val === "number" ? val : Number(val)));
+
+/**
  * Validation schema for Well creation.
  */
 export const CreateWellSchema = z.object({
@@ -50,12 +70,8 @@ export const CreateWellSchema = z.object({
       if (val === undefined || val === null) return null;
       return new Date(val);
     }),
-  plannedDepthMd: z
-    .number({ message: "Planned MD must be a number" })
-    .min(0, "Planned measured depth (MD) cannot be negative"),
-  plannedDepthTvd: z
-    .number({ message: "Planned TVD must be a number" })
-    .min(0, "Planned true vertical depth (TVD) cannot be negative"),
+  plannedDepthMd: depthDecimalValidator("Planned measured depth (MD)"),
+  plannedDepthTvd: depthDecimalValidator("Planned true vertical depth (TVD)"),
   status: z
     .enum(WELL_STATUS_VALUES, {
       message:
@@ -95,12 +111,12 @@ export const UpdateWellSchema = z.object({
       if (val === null) return null;
       return new Date(val);
     }),
-  plannedDepthMd: z.number().min(0, "Planned MD cannot be negative").optional(),
-
-  plannedDepthTvd: z
-    .number()
-    .min(0, "Planned TVD cannot be negative")
-    .optional(),
+  plannedDepthMd: depthDecimalValidator(
+    "Planned measured depth (MD)",
+  ).optional(),
+  plannedDepthTvd: depthDecimalValidator(
+    "Planned true vertical depth (TVD)",
+  ).optional(),
   status: z.enum(WELL_STATUS_VALUES).optional(),
 });
 
@@ -138,12 +154,8 @@ export const CreateFormationSchema = z
       .min(1, "Formation name is required")
       .max(100, "Formation name must not exceed 100 characters")
       .transform((val) => val.trim()),
-    topMd: z
-      .number({ message: "topMd must be a number" })
-      .min(0, "topMd cannot be negative"),
-    bottomMd: z
-      .number({ message: "bottomMd must be a number" })
-      .min(0, "bottomMd cannot be negative"),
+    topMd: depthDecimalValidator("topMd"),
+    bottomMd: depthDecimalValidator("bottomMd"),
     lithology: z
       .string()
       .max(100)
@@ -151,7 +163,7 @@ export const CreateFormationSchema = z
       .nullable()
       .transform((val) => (val ? val.trim() : null)),
   })
-  .refine((data) => data.bottomMd >= data.topMd, {
+  .refine((data) => Number(data.bottomMd) >= Number(data.topMd), {
     message: "bottomMd must be greater than or equal to topMd",
     path: ["bottomMd"],
   });
@@ -169,8 +181,8 @@ export const UpdateFormationSchema = z
       .max(100)
       .transform((val) => val.trim())
       .optional(),
-    topMd: z.number().min(0, "topMd cannot be negative").optional(),
-    bottomMd: z.number().min(0, "bottomMd cannot be negative").optional(),
+    topMd: depthDecimalValidator("topMd").optional(),
+    bottomMd: depthDecimalValidator("bottomMd").optional(),
     lithology: z
       .string()
       .max(100)
@@ -181,7 +193,7 @@ export const UpdateFormationSchema = z
   .refine(
     (data) => {
       if (data.topMd !== undefined && data.bottomMd !== undefined) {
-        return data.bottomMd >= data.topMd;
+        return Number(data.bottomMd) >= Number(data.topMd);
       }
       return true;
     },

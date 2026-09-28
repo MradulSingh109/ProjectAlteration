@@ -73,11 +73,13 @@ export class FormationService {
 
     // Validate combined interval bounds
     const effectiveTop =
-      validated.topMd !== undefined ? validated.topMd : formation.topMd;
+      validated.topMd !== undefined
+        ? Number(validated.topMd)
+        : Number(formation.topMd);
     const effectiveBottom =
       validated.bottomMd !== undefined
-        ? validated.bottomMd
-        : formation.bottomMd;
+        ? Number(validated.bottomMd)
+        : Number(formation.bottomMd);
 
     if (effectiveBottom < effectiveTop) {
       throw AppError.validation(

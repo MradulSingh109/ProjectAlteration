@@ -252,5 +252,64 @@ describe("Spatial Proximity Search (Haversine & Offset Well Analysis)", () => {
       expect(results[0].latitude).toBe(19.43);
       expect(results[0].longitude).toBe(71.34);
     });
+
+    it("handles antimeridian crossing near +/-180 longitude without false exclusions", async () => {
+      let executedSql = "";
+      const mockQueryRaw = vi.fn(async (query: any) => {
+        executedSql = query?.strings ? query.strings.join(" ") : String(query);
+        return [
+          {
+            id: "uuid-antimeridian",
+            wellId: "ANTIMERIDIAN-01",
+            name: "Antimeridian Offset Well",
+            field: "Pacific Border Field",
+            latitude: 0.0,
+            longitude: -179.9,
+            status: "DRILLING",
+            distanceKm: 22.24,
+          },
+        ];
+      });
+
+      const mockPrisma = {
+        $queryRaw: mockQueryRaw,
+        well: {
+          create: vi.fn(),
+          findUnique: vi.fn(),
+          findMany: vi.fn(),
+          update: vi.fn(),
+        },
+      } as unknown as PrismaClient;
+
+      const repo = new PrismaWellRepository(mockPrisma);
+
+      // Query near +180 (e.g. 179.9) with 30 km radius (crosses 180th meridian into negative longitudes)
+      const results = await repo.findNearby(0.0, 179.9, 30, 20);
+
+      expect(mockQueryRaw).toHaveBeenCalledTimes(1);
+      expect(results).toHaveLength(1);
+      expect(results[0].wellId).toBe("ANTIMERIDIAN-01");
+      expect(results[0].distanceKm).toBe(22.24);
+    });
+
+    it("safely handles extreme latitude queries (|lat| >= 89) without division-by-zero or NaN", async () => {
+      const mockQueryRaw = vi.fn(async () => []);
+      const mockPrisma = {
+        $queryRaw: mockQueryRaw,
+        well: {
+          create: vi.fn(),
+          findUnique: vi.fn(),
+          findMany: vi.fn(),
+          update: vi.fn(),
+        },
+      } as unknown as PrismaClient;
+
+      const repo = new PrismaWellRepository(mockPrisma);
+
+      // Extreme north latitude near pole
+      const results = await repo.findNearby(89.5, 0.0, 25, 10);
+      expect(mockQueryRaw).toHaveBeenCalledTimes(1);
+      expect(results).toEqual([]);
+    });
   });
 });

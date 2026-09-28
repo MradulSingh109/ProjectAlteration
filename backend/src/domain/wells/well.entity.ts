@@ -17,6 +17,8 @@ export const ALL_WELL_STATUSES: WellStatus[] = [
   WellStatus.ABANDONED,
 ];
 
+import { Prisma } from "@prisma/client";
+
 /**
  * Domain entity representing a Well master record.
  * Decoupled from ORM models.
@@ -29,8 +31,8 @@ export interface WellEntity {
   latitude: number;
   longitude: number;
   spudDate: Date | null;
-  plannedDepthMd: number;
-  plannedDepthTvd: number;
+  plannedDepthMd: number | Prisma.Decimal;
+  plannedDepthTvd: number | Prisma.Decimal;
   status: WellStatus;
   createdAt: Date;
   updatedAt: Date;

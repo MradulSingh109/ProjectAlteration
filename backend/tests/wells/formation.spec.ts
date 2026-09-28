@@ -177,6 +177,24 @@ describe("Formation Domain Service & Interval Validation", () => {
       expect(formationRepo.create).toHaveBeenCalledTimes(1);
     });
 
+    it("persists and retrieves millimeter precision formation depths (topMd: 2100.125, bottomMd: 2450.875) accurately", async () => {
+      const wellRepo = createMockWellRepo([sampleWell]);
+      const wellService = new WellService(wellRepo);
+      const formationRepo = createMockFormationRepo([]);
+      const service = new FormationService(formationRepo, wellService);
+
+      const created = await service.createFormation("well-uuid-1", {
+        name: "Bassein Limestone Decimal Interval",
+        topMd: 2100.125,
+        bottomMd: 2450.875,
+        lithology: "Limestone",
+      });
+
+      expect(created.name).toBe("Bassein Limestone Decimal Interval");
+      expect(Number(created.topMd)).toBe(2100.125);
+      expect(Number(created.bottomMd)).toBe(2450.875);
+    });
+
     it("throws NOT_FOUND (404) when creating a formation for non-existent well", async () => {
       const wellRepo = createMockWellRepo([]); // Empty well repo
       const wellService = new WellService(wellRepo);

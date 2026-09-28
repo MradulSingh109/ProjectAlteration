@@ -1,7 +1,28 @@
 import { prisma } from "@/infrastructure/database/prisma";
 import { IFormationRepository } from "@/domain/wells/formation.repository.interface";
 import { FormationEntity } from "@/domain/wells/formation.entity";
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
+
+function mapFormation(row: any): FormationEntity {
+  return {
+    id: row.id,
+    wellId: row.wellId,
+    name: row.name,
+    topMd:
+      row.topMd && typeof row.topMd === "object" && "toNumber" in row.topMd
+        ? row.topMd.toNumber()
+        : row.topMd,
+    bottomMd:
+      row.bottomMd &&
+      typeof row.bottomMd === "object" &&
+      "toNumber" in row.bottomMd
+        ? row.bottomMd.toNumber()
+        : row.bottomMd,
+    lithology: row.lithology,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
 
 export class PrismaFormationRepository implements IFormationRepository {
   constructor(private readonly db: PrismaClient = prisma) {}
@@ -13,19 +34,19 @@ export class PrismaFormationRepository implements IFormationRepository {
       data: {
         wellId: data.wellId,
         name: data.name,
-        topMd: data.topMd,
-        bottomMd: data.bottomMd,
+        topMd: new Prisma.Decimal(data.topMd.toString()),
+        bottomMd: new Prisma.Decimal(data.bottomMd.toString()),
         lithology: data.lithology,
       },
     });
-    return formation as unknown as FormationEntity;
+    return mapFormation(formation);
   }
 
   async findById(id: string): Promise<FormationEntity | null> {
     const formation = await this.db.formation.findUnique({
       where: { id },
     });
-    return (formation as unknown as FormationEntity) || null;
+    return formation ? mapFormation(formation) : null;
   }
 
   async listByWellId(wellId: string): Promise<FormationEntity[]> {
@@ -33,7 +54,7 @@ export class PrismaFormationRepository implements IFormationRepository {
       where: { wellId },
       orderBy: { topMd: "asc" },
     });
-    return formations as unknown as FormationEntity[];
+    return formations.map(mapFormation);
   }
 
   async update(
@@ -46,12 +67,16 @@ export class PrismaFormationRepository implements IFormationRepository {
       where: { id },
       data: {
         ...(data.name !== undefined ? { name: data.name } : {}),
-        ...(data.topMd !== undefined ? { topMd: data.topMd } : {}),
-        ...(data.bottomMd !== undefined ? { bottomMd: data.bottomMd } : {}),
+        ...(data.topMd !== undefined
+          ? { topMd: new Prisma.Decimal(data.topMd.toString()) }
+          : {}),
+        ...(data.bottomMd !== undefined
+          ? { bottomMd: new Prisma.Decimal(data.bottomMd.toString()) }
+          : {}),
         ...(data.lithology !== undefined ? { lithology: data.lithology } : {}),
       },
     });
-    return formation as unknown as FormationEntity;
+    return mapFormation(formation);
   }
 }
 
