@@ -28,4 +28,9 @@ export interface IAuthRepository {
   revokeSession(sessionId: string): Promise<void>;
   revokeAllUserSessions(userId: string): Promise<void>;
   touchSession(sessionId: string): Promise<void>;
+  updateSessionRefreshToken(
+    sessionId: string,
+    newRefreshTokenHash: string,
+    newExpiresAt: Date,
+  ): Promise<SessionEntity>;
 }

@@ -186,6 +186,94 @@ export class AuthService {
 
     return toSafeUser(user);
   }
+
+  /**
+   * Refreshes an authenticated session and rotates the refresh token.
+   *
+   * Flow & Security:
+   * 1. Hashes received raw refresh token with SHA-256.
+   * 2. Finds active session matching token hash in database.
+   * 3. Validates session state (not revoked, not expired, active user).
+   * 4. Token Rotation: generates brand new refresh token and replaces the stored hash in DB.
+   *    Old refresh token becomes immediately unusable (replay/reuse protection).
+   * 5. Signs and issues a new access JWT for the active session.
+   * 6. Returns safe user and rotated tokens.
+   */
+  async refreshToken(rawRefreshToken: string): Promise<AuthResult> {
+    if (
+      !rawRefreshToken ||
+      typeof rawRefreshToken !== "string" ||
+      !rawRefreshToken.trim()
+    ) {
+      throw AppError.unauthorized(
+        "Refresh token is required",
+        "SESSION_EXPIRED",
+      );
+    }
+
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(rawRefreshToken.trim())
+      .digest("hex");
+
+    const session = await this.repo.findSessionByRefreshTokenHash(tokenHash);
+
+    if (!session) {
+      throw AppError.unauthorized(
+        "Invalid or expired session",
+        "SESSION_EXPIRED",
+      );
+    }
+
+    if (session.isRevoked) {
+      throw AppError.unauthorized(
+        "Session has been revoked",
+        "SESSION_EXPIRED",
+      );
+    }
+
+    if (session.expiresAt <= new Date()) {
+      throw AppError.unauthorized("Session has expired", "SESSION_EXPIRED");
+    }
+
+    if (!session.user || !session.user.isActive) {
+      throw AppError.unauthorized(
+        "User account is inactive or disabled",
+        "UNAUTHORIZED",
+      );
+    }
+
+    // Refresh Token Rotation: generate new cryptographically random token
+    const newRawRefreshToken = crypto.randomBytes(32).toString("hex");
+    const newRefreshTokenHash = crypto
+      .createHash("sha256")
+      .update(newRawRefreshToken)
+      .digest("hex");
+
+    const newExpiresAt = new Date(
+      Date.now() + config.jwt.refreshTokenExpiresInDays * 24 * 60 * 60 * 1000,
+    );
+
+    await this.repo.updateSessionRefreshToken(
+      session.id,
+      newRefreshTokenHash,
+      newExpiresAt,
+    );
+
+    const accessToken = await this.jwtService.signAccessToken({
+      sub: session.user.id,
+      email: session.user.email,
+      role: session.user.role as Role,
+      sessionId: session.id,
+    });
+
+    return {
+      user: toSafeUser(session.user),
+      accessToken,
+      refreshToken: newRawRefreshToken,
+      expiresAt: newExpiresAt,
+    };
+  }
 }
 
 export const authService = new AuthService();

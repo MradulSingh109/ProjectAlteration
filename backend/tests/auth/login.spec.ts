@@ -52,6 +52,7 @@ function createMockRepository(users: UserEntity[] = []): {
     }),
     revokeAllUserSessions: vi.fn(),
     touchSession: vi.fn(),
+    updateSessionRefreshToken: vi.fn(),
   };
   return { repo, sessions };
 }

@@ -19,6 +19,7 @@ const envSchema = z.object({
   REFRESH_TOKEN_EXPIRES_IN_DAYS: z.coerce.number().default(7),
   AUTH_COOKIE_NAME: z.string().default("nwis_access_token"),
   REFRESH_COOKIE_NAME: z.string().default("nwis_refresh_token"),
+  TRUSTED_ORIGINS: z.string().optional(),
 });
 
 const isProd = process.env.NODE_ENV === "production";
@@ -61,5 +62,11 @@ export const config = {
   cookies: {
     accessTokenName: process.env.AUTH_COOKIE_NAME || "nwis_access_token",
     refreshTokenName: process.env.REFRESH_COOKIE_NAME || "nwis_refresh_token",
+  },
+  security: {
+    trustedOrigins: (process.env.TRUSTED_ORIGINS || "")
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean),
   },
 } as const;

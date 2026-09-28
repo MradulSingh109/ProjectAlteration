@@ -92,6 +92,22 @@ export class PrismaAuthRepository implements IAuthRepository {
       data: { lastUsedAt: new Date() },
     });
   }
+
+  async updateSessionRefreshToken(
+    sessionId: string,
+    newRefreshTokenHash: string,
+    newExpiresAt: Date,
+  ): Promise<SessionEntity> {
+    const session = await prisma.session.update({
+      where: { id: sessionId },
+      data: {
+        refreshTokenHash: newRefreshTokenHash,
+        expiresAt: newExpiresAt,
+        lastUsedAt: new Date(),
+      },
+    });
+    return session as SessionEntity;
+  }
 }
 
 export const authRepository = new PrismaAuthRepository();

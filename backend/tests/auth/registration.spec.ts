@@ -39,6 +39,7 @@ function createMockRepository(
     revokeSession: vi.fn(),
     revokeAllUserSessions: vi.fn(),
     touchSession: vi.fn(),
+    updateSessionRefreshToken: vi.fn(),
   };
 }
 

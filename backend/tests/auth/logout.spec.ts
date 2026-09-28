@@ -21,6 +21,7 @@ describe("Logout & Session Invalidation", () => {
       revokeSession: revokeSessionMock,
       revokeAllUserSessions: vi.fn(),
       touchSession: vi.fn(),
+      updateSessionRefreshToken: vi.fn(),
     };
 
     const authService = new AuthService(repo);
