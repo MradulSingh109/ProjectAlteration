@@ -1,0 +1,95 @@
+{
+  "file_name": "DDR_DLJ-07_2021-06-18.pdf",
+  "tables": [
+    [
+      "From",
+      "To",
+      "Depth (m)",
+      "Operation"
+    ],
+    [
+      "00:00",
+      "03:30",
+      "3,066",
+      "Drilled ahead /4\" hole, parameters steady, monitored returns."
+    ],
+    [
+      "03:30",
+      "04:15",
+      "3,088",
+      "Connection, survey, circulated bottoms-up."
+    ],
+    [
+      "04:15",
+      "09:45",
+      "3,094",
+      "Wellbore Instability — see remarks. NPT 5.5 hrs."
+    ],
+    [
+      "09:45",
+      "13:00",
+      "3,094",
+      "Conditioned hole, reamed interval, circulated hi-vis sweep."
+    ],
+    [
+      "13:00",
+      "18:30",
+      "3,115",
+      "Drilled ahead at controlled parameters."
+    ],
+    [
+      "18:30",
+      "19:15",
+      "3,115",
+      "Connection, flow-check, mud properties checked."
+    ],
+    [
+      "19:15",
+      "24:00",
+      "3,130",
+      "Drilled ahead; depth at 24:00 hrs as reported."
+    ],
+    [
+      "MW (ppg)",
+      "FV (s)",
+      "PV (cP)",
+      "YP (lb/100ft2)",
+      "pH",
+      "Solids (%)",
+      "Type"
+    ],
+    [
+      "12.1",
+      "76",
+      "30",
+      "32",
+      "9.5",
+      "12.1",
+      "KCl-Polymer"
+    ],
+    [
+      "String",
+      "Size",
+      "Shoe (m MD)",
+      "TOC (m)"
+    ],
+    [
+      "Conductor",
+      "20\"",
+      "86",
+      "0"
+    ],
+    [
+      "Surface",
+      "/8\"",
+      "1,050",
+      "0"
+    ],
+    [
+      "Intermediate",
+      "/8\"",
+      "2,896",
+      "2,088"
+    ]
+  ]
+}

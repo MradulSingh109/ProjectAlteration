@@ -1,0 +1,174 @@
+{
+  "events": [
+    {
+      "event_id": "DDR_DLJ-12_2019-03-14:event-001",
+      "well_id": "DLJ-12",
+      "event_type": "TORQUE_SPIKE",
+      "depth_md": 2912,
+      "depth_tvd": null,
+      "formation": "Barail",
+      "severity": "MEDIUM",
+      "description": "TORQUE SPIKE at 2,912 m MD (BARAIL)",
+      "cause": "Barail coal seams",
+      "mitigation": "Reduced WOB/RPM, circulated bottoms-up and added lubricant to the mud system.",
+      "outcome": null,
+      "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+      "source_page": 1,
+      "confidence": 0.9,
+      "npt_hours": 3.0,
+      "source_section": "4. DRILLING EVENTS / REMARKS",
+      "extraction_model": "nwis-rules-baseline-v1",
+      "extraction_timestamp": "2026-09-28T05:32:19+00:00",
+      "evidence": [
+        {
+          "field": "event_type",
+          "original_text": "TORQUE SPIKE at 2,912 m MD (BARAIL) | Severity: MEDIUM | NPT: 3.0 hrs | MW: 10.5 ppg",
+          "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "description",
+          "original_text": "TORQUE SPIKE at 2,912 m MD (BARAIL) | Severity: MEDIUM | NPT: 3.0 hrs | MW: 10.5 ppg",
+          "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "well_id",
+          "original_text": "TORQUE SPIKE at 2,912 m MD (BARAIL) | Severity: MEDIUM | NPT: 3.0 hrs | MW: 10.5 ppg\nTorque increased from 9 to 13 kft-lb at 2,912 m MD on entering Barail coal seams; stick-slip\nobserved and ROP dropped from 9 to 4 m/hr.\nMitigation: Reduced WOB/RPM, circulated bottoms-up and added lubricant to the mud system.\nLesson: Upper Barail coal seams produce torque spikes 20-40 m below the top; pre-condition the mud\nbefore entering.",
+          "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "depth_md",
+          "original_text": "TORQUE SPIKE at 2,912 m MD (BARAIL) | Severity: MEDIUM | NPT: 3.0 hrs | MW: 10.5 ppg",
+          "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "formation",
+          "original_text": "TORQUE SPIKE at 2,912 m MD (BARAIL) | Severity: MEDIUM | NPT: 3.0 hrs | MW: 10.5 ppg",
+          "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "severity",
+          "original_text": "TORQUE SPIKE at 2,912 m MD (BARAIL) | Severity: MEDIUM | NPT: 3.0 hrs | MW: 10.5 ppg",
+          "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "cause",
+          "original_text": "Torque increased from 9 to 13 kft-lb at 2,912 m MD on entering Barail coal seams; stick-slip",
+          "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "mitigation",
+          "original_text": "Mitigation: Reduced WOB/RPM, circulated bottoms-up and added lubricant to the mud system.",
+          "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "npt_hours",
+          "original_text": "TORQUE SPIKE at 2,912 m MD (BARAIL) | Severity: MEDIUM | NPT: 3.0 hrs | MW: 10.5 ppg",
+          "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        }
+      ]
+    },
+    {
+      "event_id": "DDR_DLJ-12_2019-03-14:event-002",
+      "well_id": "DLJ-12",
+      "event_type": "STUCK_PIPE",
+      "depth_md": 2940,
+      "depth_tvd": null,
+      "formation": "Barail",
+      "severity": "HIGH",
+      "description": "STUCK PIPE at 2,940 m MD (BARAIL)",
+      "cause": null,
+      "mitigation": "Increased circulation before connections; short reaming intervals; improved hole conditioning with hi-vis sweeps.",
+      "outcome": "freed after spotting 30 bbl lubricant",
+      "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+      "source_page": 1,
+      "confidence": 0.9,
+      "npt_hours": 18.5,
+      "source_section": "4. DRILLING EVENTS / REMARKS",
+      "extraction_model": "nwis-rules-baseline-v1",
+      "extraction_timestamp": "2026-09-28T05:32:19+00:00",
+      "evidence": [
+        {
+          "field": "event_type",
+          "original_text": "STUCK PIPE at 2,940 m MD (BARAIL) | Severity: HIGH | NPT: 18.5 hrs | MW: 10.6 ppg",
+          "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "description",
+          "original_text": "STUCK PIPE at 2,940 m MD (BARAIL) | Severity: HIGH | NPT: 18.5 hrs | MW: 10.6 ppg",
+          "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "well_id",
+          "original_text": "STUCK PIPE at 2,940 m MD (BARAIL) | Severity: HIGH | NPT: 18.5 hrs | MW: 10.6 ppg\nPipe became stuck while making connection at 2,940 m MD in Barail shale/coal sequence. Overpull to\n85 klbs, no rotation. Worked pipe with jarring for 4.5 hrs; freed after spotting 30 bbl lubricant\npill. Torque had risen from 9 to 14 kft-lb over the preceding 60 m.\nMitigation: Increased circulation before connections; short reaming intervals; improved hole\nconditioning with hi-vis sweeps.\nLesson: Rising torque trend in upper Barail is a precursor to stuck pipe; ream every stand and keep\njars armed below 2,900 m.",
+          "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "depth_md",
+          "original_text": "STUCK PIPE at 2,940 m MD (BARAIL) | Severity: HIGH | NPT: 18.5 hrs | MW: 10.6 ppg",
+          "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "formation",
+          "original_text": "STUCK PIPE at 2,940 m MD (BARAIL) | Severity: HIGH | NPT: 18.5 hrs | MW: 10.6 ppg",
+          "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "severity",
+          "original_text": "STUCK PIPE at 2,940 m MD (BARAIL) | Severity: HIGH | NPT: 18.5 hrs | MW: 10.6 ppg",
+          "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "mitigation",
+          "original_text": "Mitigation: Increased circulation before connections; short reaming intervals; improved hole",
+          "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "outcome",
+          "original_text": "85 klbs, no rotation. Worked pipe with jarring for 4.5 hrs; freed after spotting 30 bbl lubricant",
+          "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "npt_hours",
+          "original_text": "STUCK PIPE at 2,940 m MD (BARAIL) | Severity: HIGH | NPT: 18.5 hrs | MW: 10.6 ppg",
+          "source_document": "DDR_DLJ-12_2019-03-14.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "file_name": "DDR_HGJ-02_2014-02-22.pdf",
+  "tables": [
+    [
+      "From",
+      "To",
+      "Depth (m)",
+      "Operation"
+    ],
+    [
+      "00:00",
+      "03:30",
+      "3,758",
+      "Drilled ahead /4\" hole, parameters steady, monitored returns."
+    ],
+    [
+      "03:30",
+      "04:15",
+      "3,780",
+      "Connection, survey, circulated bottoms-up."
+    ],
+    [
+      "04:15",
+      "09:45",
+      "3,790",
+      "Mud Loss — see remarks. NPT 52.0 hrs."
+    ],
+    [
+      "09:45",
+      "13:00",
+      "3,790",
+      "Conditioned hole, reamed interval, circulated hi-vis sweep."
+    ],
+    [
+      "13:00",
+      "18:30",
+      "3,807",
+      "Drilled ahead at controlled parameters."
+    ],
+    [
+      "18:30",
+      "19:15",
+      "3,807",
+      "Connection, flow-check, mud properties checked."
+    ],
+    [
+      "19:15",
+      "24:00",
+      "3,822",
+      "Drilled ahead; depth at 24:00 hrs as reported."
+    ],
+    [
+      "MW (ppg)",
+      "FV (s)",
+      "PV (cP)",
+      "YP (lb/100ft2)",
+      "pH",
+      "Solids (%)",
+      "Type"
+    ],
+    [
+      "11.9",
+      "75",
+      "29",
+      "31",
+      "9.5",
+      "11.9",
+      "KCl-Polymer"
+    ],
+    [
+      "String",
+      "Size",
+      "Shoe (m MD)",
+      "TOC (m)"
+    ],
+    [
+      "Conductor",
+      "20\"",
+      "89",
+      "0"
+    ],
+    [
+      "Surface",
+      "/8\"",
+      "1,217",
+      "0"
+    ],
+    [
+      "Intermediate",
+      "/8\"",
+      "2,995",
+      "2,446"
+    ]
+  ]
+}

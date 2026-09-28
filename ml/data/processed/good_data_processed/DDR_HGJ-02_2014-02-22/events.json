@@ -1,0 +1,181 @@
+{
+  "events": [
+    {
+      "event_id": "DDR_HGJ-02_2014-02-22:event-001",
+      "well_id": "HGJ-02",
+      "event_type": "MUD_LOSS",
+      "depth_md": 3790,
+      "depth_tvd": null,
+      "formation": "Limestone",
+      "severity": "CRITICAL",
+      "description": "MUD LOSS at 3,790 m MD (SYLHET)",
+      "cause": "fractured Sylhet limestone",
+      "mitigation": "Reduced mud weight by 0.3 ppg and spotted a cross-linked LCM pill across the loss zone",
+      "outcome": "cured after two attempts",
+      "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+      "source_page": 1,
+      "confidence": 0.9,
+      "npt_hours": 52.0,
+      "source_section": "4. DRILLING EVENTS / REMARKS",
+      "extraction_model": "nwis-rules-baseline-v1",
+      "extraction_timestamp": "2026-09-28T05:32:19+00:00",
+      "evidence": [
+        {
+          "field": "event_type",
+          "original_text": "MUD LOSS at 3,790 m MD (SYLHET) | Severity: CRITICAL | NPT: 52.0 hrs | MW: 11.9 ppg",
+          "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "description",
+          "original_text": "MUD LOSS at 3,790 m MD (SYLHET) | Severity: CRITICAL | NPT: 52.0 hrs | MW: 11.9 ppg",
+          "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "well_id",
+          "original_text": "MUD LOSS at 3,790 m MD (SYLHET) | Severity: CRITICAL | NPT: 52.0 hrs | MW: 11.9 ppg\nTotal loss of returns at 3,790 m MD in fractured Sylhet limestone; loss rate exceeded 120 bbl/hr.\nStandpipe pressure dropped 380 psi. Well kept full with water while LCM was mixed.\nMitigation: Reduced mud weight by 0.3 ppg and spotted a cross-linked LCM pill across the loss zone;\ncured after two attempts.\nLesson: Reduce ECD (lower flow, controlled ROP) when approaching the Sylhet loss zone; stage\ncross-linked pills before drilling into the limestone.",
+          "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "depth_md",
+          "original_text": "MUD LOSS at 3,790 m MD (SYLHET) | Severity: CRITICAL | NPT: 52.0 hrs | MW: 11.9 ppg",
+          "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "formation",
+          "original_text": "Total loss of returns at 3,790 m MD in fractured Sylhet limestone; loss rate exceeded 120 bbl/hr.",
+          "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "severity",
+          "original_text": "MUD LOSS at 3,790 m MD (SYLHET) | Severity: CRITICAL | NPT: 52.0 hrs | MW: 11.9 ppg",
+          "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "cause",
+          "original_text": "Total loss of returns at 3,790 m MD in fractured Sylhet limestone; loss rate exceeded 120 bbl/hr.",
+          "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "mitigation",
+          "original_text": "Mitigation: Reduced mud weight by 0.3 ppg and spotted a cross-linked LCM pill across the loss zone;",
+          "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "outcome",
+          "original_text": "cured after two attempts.",
+          "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "npt_hours",
+          "original_text": "MUD LOSS at 3,790 m MD (SYLHET) | Severity: CRITICAL | NPT: 52.0 hrs | MW: 11.9 ppg",
+          "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        }
+      ]
+    },
+    {
+      "event_id": "DDR_HGJ-02_2014-02-22:event-002",
+      "well_id": "HGJ-02",
+      "event_type": "KICK",
+      "depth_md": 3804,
+      "depth_tvd": null,
+      "formation": null,
+      "severity": "HIGH",
+      "description": "KICK at 3,804 m MD (SYLHET)",
+      "cause": "losses reduced hydrostatic head",
+      "mitigation": "Flow-checked, closed BOP, circulated influx out and increased MW to 12.6 ppg with kill-line monitoring.",
+      "outcome": "circulated influx out and increased MW to 12.6 ppg with",
+      "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+      "source_page": 1,
+      "confidence": 0.9,
+      "npt_hours": 16.0,
+      "source_section": "4. DRILLING EVENTS / REMARKS",
+      "extraction_model": "nwis-rules-baseline-v1",
+      "extraction_timestamp": "2026-09-28T05:32:19+00:00",
+      "evidence": [
+        {
+          "field": "event_type",
+          "original_text": "KICK at 3,804 m MD (SYLHET) | Severity: HIGH | NPT: 16.0 hrs | MW: 12.3 ppg",
+          "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "description",
+          "original_text": "KICK at 3,804 m MD (SYLHET) | Severity: HIGH | NPT: 16.0 hrs | MW: 12.3 ppg",
+          "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "well_id",
+          "original_text": "KICK at 3,804 m MD (SYLHET) | Severity: HIGH | NPT: 16.0 hrs | MW: 12.3 ppg\nFlow observed on connection at 3,804 m MD (Sylhet) after losses reduced hydrostatic head; 9 bbl\ngain. Well shut in with SIDPP 310 psi.\nMitigation: Flow-checked, closed BOP, circulated influx out and increased MW to 12.6 ppg with\nkill-line monitoring.\nLesson: Narrow window in Sylhet: manage ECD carefully to avoid losses while holding the kick off.",
+          "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "depth_md",
+          "original_text": "KICK at 3,804 m MD (SYLHET) | Severity: HIGH | NPT: 16.0 hrs | MW: 12.3 ppg",
+          "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "severity",
+          "original_text": "KICK at 3,804 m MD (SYLHET) | Severity: HIGH | NPT: 16.0 hrs | MW: 12.3 ppg",
+          "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "cause",
+          "original_text": "Flow observed on connection at 3,804 m MD (Sylhet) after losses reduced hydrostatic head; 9 bbl",
+          "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "mitigation",
+          "original_text": "Mitigation: Flow-checked, closed BOP, circulated influx out and increased MW to 12.6 ppg with",
+          "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "outcome",
+          "original_text": "Mitigation: Flow-checked, closed BOP, circulated influx out and increased MW to 12.6 ppg with",
+          "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "npt_hours",
+          "original_text": "KICK at 3,804 m MD (SYLHET) | Severity: HIGH | NPT: 16.0 hrs | MW: 12.3 ppg",
+          "source_document": "DDR_HGJ-02_2014-02-22.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        }
+      ]
+    }
+  ]
+}

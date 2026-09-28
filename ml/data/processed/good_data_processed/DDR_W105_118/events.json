@@ -1,0 +1,97 @@
+{
+  "events": [
+    {
+      "event_id": "DDR_W105_118:event-001",
+      "well_id": "W-105",
+      "event_type": "MUD_LOSS",
+      "depth_md": null,
+      "depth_tvd": null,
+      "formation": "Barail",
+      "severity": null,
+      "description": "treatment in Moran-North-105 that restricted Barail mud losses to 9.6 bbl/hr with",
+      "cause": null,
+      "mitigation": null,
+      "outcome": null,
+      "source_document": "DDR_W105_118.pdf",
+      "source_page": 1,
+      "confidence": 0.7,
+      "npt_hours": null,
+      "source_section": "Unstructured report text",
+      "extraction_model": "nwis-rules-baseline-v1",
+      "extraction_timestamp": "2026-09-28T05:32:19+00:00",
+      "evidence": [
+        {
+          "field": "event_type",
+          "original_text": "treatment in Moran-North-105 that restricted Barail mud losses to 9.6 bbl/hr with",
+          "source_document": "DDR_W105_118.pdf",
+          "source_page": 1,
+          "source_section": "Unstructured report text"
+        },
+        {
+          "field": "description",
+          "original_text": "treatment in Moran-North-105 that restricted Barail mud losses to 9.6 bbl/hr with",
+          "source_document": "DDR_W105_118.pdf",
+          "source_page": 1,
+          "source_section": "Unstructured report text"
+        },
+        {
+          "field": "well_id",
+          "original_text": "WELL ID: W-105 | FORMATION: Barail Coal-Shale | INTERVAL: 3,420 m â 3,465 m",
+          "source_document": "DDR_W105_118.pdf",
+          "source_page": 1,
+          "source_section": "Unstructured report text"
+        },
+        {
+          "field": "formation",
+          "original_text": "treatment in Moran-North-105 that restricted Barail mud losses to 9.6 bbl/hr with",
+          "source_document": "DDR_W105_118.pdf",
+          "source_page": 1,
+          "source_section": "Unstructured report text"
+        }
+      ]
+    },
+    {
+      "event_id": "DDR_W105_118:event-002",
+      "well_id": "W-105",
+      "event_type": "NPT",
+      "depth_md": null,
+      "depth_tvd": null,
+      "formation": null,
+      "severity": null,
+      "description": "zero stuck-pipe NPT.",
+      "cause": null,
+      "mitigation": null,
+      "outcome": null,
+      "source_document": "DDR_W105_118.pdf",
+      "source_page": 1,
+      "confidence": 0.7,
+      "npt_hours": null,
+      "source_section": "Unstructured report text",
+      "extraction_model": "nwis-rules-baseline-v1",
+      "extraction_timestamp": "2026-09-28T05:32:19+00:00",
+      "evidence": [
+        {
+          "field": "event_type",
+          "original_text": "zero stuck-pipe NPT.",
+          "source_document": "DDR_W105_118.pdf",
+          "source_page": 1,
+          "source_section": "Unstructured report text"
+        },
+        {
+          "field": "description",
+          "original_text": "zero stuck-pipe NPT.",
+          "source_document": "DDR_W105_118.pdf",
+          "source_page": 1,
+          "source_section": "Unstructured report text"
+        },
+        {
+          "field": "well_id",
+          "original_text": "WELL ID: W-105 | FORMATION: Barail Coal-Shale | INTERVAL: 3,420 m â 3,465 m",
+          "source_document": "DDR_W105_118.pdf",
+          "source_page": 1,
+          "source_section": "Unstructured report text"
+        }
+      ]
+    }
+  ]
+}

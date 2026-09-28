@@ -1,0 +1,37 @@
+{
+  "total_intervals": 1942,
+  "depth_step_m": 10.0,
+  "unique_wells": 12,
+  "splits": {
+    "train_intervals": 1314,
+    "val_intervals": 313,
+    "test_intervals": 315
+  },
+  "hazard_counts": {
+    "mud_loss_intervals": 16,
+    "stuck_pipe_intervals": 9,
+    "kick_intervals": 6,
+    "normal_intervals": 1911
+  },
+  "features_list": [
+    "depth_md",
+    "formation",
+    "lithology",
+    "rop_mhr",
+    "wob_klbs",
+    "rpm",
+    "torque_kftlb",
+    "spp_psi",
+    "flow_rate_gpm",
+    "mud_weight_ppg",
+    "ecd_ppg",
+    "offset_wells_count_in_radius",
+    "max_offset_similarity",
+    "offset_mud_loss_count",
+    "offset_stuck_pipe_count",
+    "offset_kick_count",
+    "offset_torque_spike_count",
+    "nearest_hazard_distance_km",
+    "offset_hazard_density"
+  ]
+}

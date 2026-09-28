@@ -20,7 +20,7 @@ from pathlib import Path
 
 from ml.src.document_processing.pdf_reader import read_pdf_document
 from ml.src.document_processing.pdf_classifier import classify_pdf
-from ml.src.document_processing.ocr import run_ocr, should_run_ocr
+from ml.src.document_processing.ocr import run_ocr_pages, should_run_ocr
 from ml.src.document_processing.text_cleaner import clean_text
 from ml.src.document_processing.table_extractor import extract_tables
 
@@ -40,10 +40,13 @@ def process_document(pdf_path: str | Path) -> dict:
 
     # Step 3: OCR fallback when extracted text is empty or sparse
     raw_text = document.extracted_text
+    page_texts = list(document.text_pages)
     if should_run_ocr(raw_text):
-        ocr_text = run_ocr(pdf_path)
+        ocr_page_texts = run_ocr_pages(pdf_path)
+        ocr_text = "\n\n".join(ocr_page_texts)
         if ocr_text.strip():
             raw_text = ocr_text
+            page_texts = ocr_page_texts
 
     # Step 4: clean the extracted text
     cleaned_text = clean_text(raw_text)
@@ -58,6 +61,7 @@ def process_document(pdf_path: str | Path) -> dict:
         "text_length": len(cleaned_text),
         "tables": tables,
         "cleaned_text": cleaned_text,
+        "page_texts": page_texts,
     }
 
 
@@ -74,6 +78,7 @@ def save_processed_document(result: dict, output_dir: str | Path | None = None) 
         "file_name": result["file_name"],
         "document_type": result["document_type"],
         "cleaned_text": result["cleaned_text"],
+        "page_texts": result.get("page_texts", []),
     }
 
     tables_payload = {

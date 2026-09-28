@@ -1,0 +1,58 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 4 0 R >> >> /MediaBox [0 0 612 792] /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+5 0 obj
+<< /Length 1725 >>
+stream
+BT
+/F1 10 Tf
+50 760 Td
+14 TL
+(OIL INDIA LIMITED \(OIL\) - DULIAJAN HEADQUARTERS) Tj T*
+(DOCUMENT: MudLog_W098_Barail.pdf \(Geological Mud Logging Report\)) Tj T*
+(WELL ID: W-098 | FORMATION: Barail Coal-Shale & Kopili Shale | INTERVAL: 3,100 m – 4,010 m) Tj T*
+(--------------------------------------------------------------------------------) Tj T*
+(DATE: 2025-11-24 | AUTHOR: Geolog / OIL Mud Logging Unit #07) Tj T*
+(SHA-256 INTEGRITY HASH: 973ef34924d81b49f48c17b8c966c66ea4902d9e2cd1aa5e4347fbbc4b3a5576) Tj T*
+(EXTRACTED EVENT: Mud Loss & Connection Gas @ 3405 m) Tj T*
+(SEVERITY: HIGH | LOSS RATE: 14.2 bbl/hr) Tj T*
+(MITIGATION: 25 bbl Sized CaCO3 \(50-150 micron\) + 15 ppb Mica pill; Driller's Method well kill at 3,790 m with 1.34 sg mud) Tj T*
+(--------------------------------------------------------------------------------) Tj T*
+() Tj T*
+(SUMMARY: Final Mud Logging & Pore Pressure Report for Nahorkatiya-East-098) Tj T*
+(covering Barail coal fracture losses \(3,405 m\) and Kopili Shale high-pressure gas) Tj T*
+(kick \(3,790 m\). VERBATIM OPERATIONAL LOG: LITHOLOGY & GAS LOG \(3,400–3,445 m\):) Tj T*
+(Cuttings consist of 45% black vitreous sub-bituminous coal with orthogonal cleat) Tj T*
+(planes, 35% dark grey fissile carbonaceous shale, and 20% fine argillaceous) Tj T*
+(sandstone. At 3,405 m MD \(3,368 m TVD\), mud pit active sensor recorded 14.2 bbl/hr) Tj T*
+(dynamic loss. Pumped pre-mixed 25 bbl CaCO3 \(50-150 micron\) + 15 ppb Mica pill;) Tj T*
+(fracture network bridged effectively within 65 minutes.) Tj T*
+() Tj T*
+(--------------------------------------------------------------------------------) Tj T*
+(SECURITY WATERMARK: CONFIDENTIAL - OIL INDIA LTD - eRTMAC-NWIS VERIFIED) Tj T*
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000229 00000 n 
+0000000297 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+2075
+%%EOF

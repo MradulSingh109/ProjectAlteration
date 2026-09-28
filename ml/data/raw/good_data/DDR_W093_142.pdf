@@ -1,0 +1,61 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 4 0 R >> >> /MediaBox [0 0 612 792] /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+5 0 obj
+<< /Length 1924 >>
+stream
+BT
+/F1 10 Tf
+50 760 Td
+14 TL
+(OIL INDIA LIMITED \(OIL\) - DULIAJAN HEADQUARTERS) Tj T*
+(DOCUMENT: DDR_W093_142.pdf \(Daily Drilling Report \(DDR\)\)) Tj T*
+(WELL ID: W-093 | FORMATION: Barail Coal-Shale | INTERVAL: 3,410 m – 3,448 m) Tj T*
+(--------------------------------------------------------------------------------) Tj T*
+(DATE: 2026-01-19 | AUTHOR: Sr. Drilling Supt. R.K. Borgohain \(OIL Duliajan\)) Tj T*
+(SHA-256 INTEGRITY HASH: cdc24cd09837fca22cbd2126a8e4b5f55b812853d1c03393bfd3dac05e7c4ce0) Tj T*
+(EXTRACTED EVENT: Mud Loss @ 3428 m) Tj T*
+(SEVERITY: CRITICAL | LOSS RATE: 15.4 bbl/hr) Tj T*
+(MITIGATION: 25 bbl High-Concentration LCM Pill \(15 ppb Medium Nut-Plug + 10 ppb Coarse Flake Mica + 8 ppb Sized CaCO3\)) Tj T*
+(--------------------------------------------------------------------------------) Tj T*
+() Tj T*
+(SUMMARY: Daily Drilling Report #142 for Well Nahorkatiya-093 documenting severe) Tj T*
+(15.4 bbl/hr mud losses at 3,428 m in Barail Coal-Shale and successful) Tj T*
+(stabilization using 25 bbl Nut-Plug/Mica/CaCO3 LCM pill. VERBATIM OPERATIONAL LOG:) Tj T*
+(08:30 - 11:00 HRS: Drilling 8-1/2" hole in Barail Coal-Shale from 3,418 m to 3,428) Tj T*
+(m with 1.24 sg KCl-Polymer mud. At 3,428 m, encountered sudden drilling break \(ROP) Tj T*
+(jumped from 18.2 to 27.4 m/hr\) followed by 180 psi SPP drop and dynamic mud loss) Tj T*
+(of 15.4 bbl/hr into micro-cleated coal fractures. Reduced flow rate from 2,150 LPM) Tj T*
+(to 1,750 LPM. Spotted 25 bbl LCM pill \(15 ppb Medium Nut-Plug + 10 ppb Coarse) Tj T*
+(Flake Mica + 8 ppb Sized CaCO3 150-micron\) across 3,415-3,448 m. Soaked for 45) Tj T*
+(mins under 150 psi squeeze pressure. Full returns re-established; dynamic seepage) Tj T*
+(<0.8 bbl/hr.) Tj T*
+() Tj T*
+(--------------------------------------------------------------------------------) Tj T*
+(SECURITY WATERMARK: CONFIDENTIAL - OIL INDIA LTD - eRTMAC-NWIS VERIFIED) Tj T*
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000229 00000 n 
+0000000297 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+2274
+%%EOF

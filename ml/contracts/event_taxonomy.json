@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0.0",
+  "event_types": [
+    "MUD_LOSS",
+    "KICK",
+    "STUCK_PIPE",
+    "FISHING",
+    "TORQUE_SPIKE",
+    "PRESSURE_SPIKE",
+    "OVERPRESSURE",
+    "LOST_CIRCULATION",
+    "CEMENTING_FAILURE",
+    "CASING_PROBLEM",
+    "NPT",
+    "FORMATION_CHANGE",
+    "WELL_CONTROL"
+  ],
+  "severity_levels": [
+    "LOW",
+    "MEDIUM",
+    "HIGH",
+    "CRITICAL"
+  ]
+}

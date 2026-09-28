@@ -1,0 +1,167 @@
+{
+  "events": [
+    {
+      "event_id": "DDR_NHK-07_2016-11-02:event-001",
+      "well_id": "NHK-07",
+      "event_type": "TORQUE_SPIKE",
+      "depth_md": 2988,
+      "depth_tvd": null,
+      "formation": "Barail",
+      "severity": "MEDIUM",
+      "description": "TORQUE SPIKE at 2,988 m MD (BARAIL)",
+      "cause": null,
+      "mitigation": "Lowered RPM, added lubricant to mud system and reamed the interval before drilling ahead.",
+      "outcome": null,
+      "source_document": "DDR_NHK-07_2016-11-02.pdf",
+      "source_page": 1,
+      "confidence": 0.9,
+      "npt_hours": 2.5,
+      "source_section": "4. DRILLING EVENTS / REMARKS",
+      "extraction_model": "nwis-rules-baseline-v1",
+      "extraction_timestamp": "2026-09-28T05:32:19+00:00",
+      "evidence": [
+        {
+          "field": "event_type",
+          "original_text": "TORQUE SPIKE at 2,988 m MD (BARAIL) | Severity: MEDIUM | NPT: 2.5 hrs | MW: 10.7 ppg",
+          "source_document": "DDR_NHK-07_2016-11-02.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "description",
+          "original_text": "TORQUE SPIKE at 2,988 m MD (BARAIL) | Severity: MEDIUM | NPT: 2.5 hrs | MW: 10.7 ppg",
+          "source_document": "DDR_NHK-07_2016-11-02.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "well_id",
+          "original_text": "TORQUE SPIKE at 2,988 m MD (BARAIL) | Severity: MEDIUM | NPT: 2.5 hrs | MW: 10.7 ppg\nErratic torque (10-16 kft-lb) with pack-off tendency at 2,988 m MD in Barail coal/shale.\nMitigation: Lowered RPM, added lubricant to mud system and reamed the interval before drilling\nahead.\nLesson: Monitor the torque trend, not the absolute value, when drilling Barail.",
+          "source_document": "DDR_NHK-07_2016-11-02.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "depth_md",
+          "original_text": "TORQUE SPIKE at 2,988 m MD (BARAIL) | Severity: MEDIUM | NPT: 2.5 hrs | MW: 10.7 ppg",
+          "source_document": "DDR_NHK-07_2016-11-02.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "formation",
+          "original_text": "TORQUE SPIKE at 2,988 m MD (BARAIL) | Severity: MEDIUM | NPT: 2.5 hrs | MW: 10.7 ppg",
+          "source_document": "DDR_NHK-07_2016-11-02.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "severity",
+          "original_text": "TORQUE SPIKE at 2,988 m MD (BARAIL) | Severity: MEDIUM | NPT: 2.5 hrs | MW: 10.7 ppg",
+          "source_document": "DDR_NHK-07_2016-11-02.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "mitigation",
+          "original_text": "Mitigation: Lowered RPM, added lubricant to mud system and reamed the interval before drilling",
+          "source_document": "DDR_NHK-07_2016-11-02.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "npt_hours",
+          "original_text": "TORQUE SPIKE at 2,988 m MD (BARAIL) | Severity: MEDIUM | NPT: 2.5 hrs | MW: 10.7 ppg",
+          "source_document": "DDR_NHK-07_2016-11-02.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        }
+      ]
+    },
+    {
+      "event_id": "DDR_NHK-07_2016-11-02:event-002",
+      "well_id": "NHK-07",
+      "event_type": "STUCK_PIPE",
+      "depth_md": 3012,
+      "depth_tvd": null,
+      "formation": "Barail",
+      "severity": "HIGH",
+      "description": "STUCK PIPE at 3,012 m MD (BARAIL)",
+      "cause": null,
+      "mitigation": "Applied controlled overpull to 110 klbs, spotted pipe-freeing agent and regained rotation after 9 hrs; reamed interval twice.",
+      "outcome": "Freed after 9 hrs of jarring and a 40 bbl pipe-freeing pill",
+      "source_document": "DDR_NHK-07_2016-11-02.pdf",
+      "source_page": 1,
+      "confidence": 0.9,
+      "npt_hours": 22.0,
+      "source_section": "4. DRILLING EVENTS / REMARKS",
+      "extraction_model": "nwis-rules-baseline-v1",
+      "extraction_timestamp": "2026-09-28T05:32:19+00:00",
+      "evidence": [
+        {
+          "field": "event_type",
+          "original_text": "STUCK PIPE at 3,012 m MD (BARAIL) | Severity: HIGH | NPT: 22.0 hrs | MW: 10.8 ppg",
+          "source_document": "DDR_NHK-07_2016-11-02.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "description",
+          "original_text": "STUCK PIPE at 3,012 m MD (BARAIL) | Severity: HIGH | NPT: 22.0 hrs | MW: 10.8 ppg",
+          "source_document": "DDR_NHK-07_2016-11-02.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "well_id",
+          "original_text": "STUCK PIPE at 3,012 m MD (BARAIL) | Severity: HIGH | NPT: 22.0 hrs | MW: 10.8 ppg\nString stuck at 3,012 m MD in Barail after 35 min static during survey. Overpull 110 klbs, no\nrotation. Freed after 9 hrs of jarring and a 40 bbl pipe-freeing pill.\nMitigation: Applied controlled overpull to 110 klbs, spotted pipe-freeing agent and regained\nrotation after 9 hrs; reamed interval twice.\nLesson: Avoid static pipe across Barail coal seams; keep pipe moving during surveys and connections.",
+          "source_document": "DDR_NHK-07_2016-11-02.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "depth_md",
+          "original_text": "STUCK PIPE at 3,012 m MD (BARAIL) | Severity: HIGH | NPT: 22.0 hrs | MW: 10.8 ppg",
+          "source_document": "DDR_NHK-07_2016-11-02.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "formation",
+          "original_text": "STUCK PIPE at 3,012 m MD (BARAIL) | Severity: HIGH | NPT: 22.0 hrs | MW: 10.8 ppg",
+          "source_document": "DDR_NHK-07_2016-11-02.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "severity",
+          "original_text": "STUCK PIPE at 3,012 m MD (BARAIL) | Severity: HIGH | NPT: 22.0 hrs | MW: 10.8 ppg",
+          "source_document": "DDR_NHK-07_2016-11-02.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "mitigation",
+          "original_text": "Mitigation: Applied controlled overpull to 110 klbs, spotted pipe-freeing agent and regained",
+          "source_document": "DDR_NHK-07_2016-11-02.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "outcome",
+          "original_text": "rotation. Freed after 9 hrs of jarring and a 40 bbl pipe-freeing pill.",
+          "source_document": "DDR_NHK-07_2016-11-02.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "npt_hours",
+          "original_text": "STUCK PIPE at 3,012 m MD (BARAIL) | Severity: HIGH | NPT: 22.0 hrs | MW: 10.8 ppg",
+          "source_document": "DDR_NHK-07_2016-11-02.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        }
+      ]
+    }
+  ]
+}
