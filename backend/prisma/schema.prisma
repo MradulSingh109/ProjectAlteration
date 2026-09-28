@@ -219,6 +219,8 @@ model DrillingEvent {
   @@index([severity], name: "idx_drilling_events_severity")
   @@index([sourceDocumentId], name: "idx_drilling_events_source_doc")
   @@index([wellId, reviewStatus], name: "idx_drilling_events_well_review")
+  @@index([wellId, depthMd], name: "idx_drilling_events_well_depth")
+  @@index([sourceDocumentId, createdAt], name: "idx_drilling_events_doc_created")
   @@map("drilling_events")
 }
 

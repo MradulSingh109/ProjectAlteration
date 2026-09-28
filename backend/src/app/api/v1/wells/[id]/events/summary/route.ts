@@ -4,24 +4,23 @@ import { requireAuth } from "@/application/auth/guard";
 import { successResponse, errorResponse } from "@/lib/response";
 
 interface RouteParams {
-  params: Promise<{ eventId: string }>;
+  params: Promise<{ id: string }>;
 }
 
 /**
- * GET /api/v1/events/:eventId
- * Retrieves detailed drilling event data including safe source document provenance metadata.
+ * GET /api/v1/wells/:id/events/summary
+ * Computes deterministic database-aggregated summary of drilling events for the specified well.
  *
  * RBAC: Accessible to all authenticated users (including VIEWER).
- * SECURITY: Never exposes physical storage keys, directory roots, or internal paths.
  */
 export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
-    const { user } = await requireAuth(req);
-    const { eventId } = await params;
+    await requireAuth(req);
+    const { id: wellId } = await params;
 
-    const event = await drillingEventService.getEventDetail(eventId, user.id);
+    const summary = await drillingEventService.getWellEventSummary(wellId);
 
-    return successResponse({ ...event, event }, 200);
+    return successResponse({ ...summary, summary }, 200);
   } catch (error) {
     return errorResponse(error);
   }

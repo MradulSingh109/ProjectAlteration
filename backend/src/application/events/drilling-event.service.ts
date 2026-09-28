@@ -16,8 +16,11 @@ import {
 import {
   createDrillingEventSchema,
   reviewDrillingEventSchema,
+  queryDrillingEventsSchema,
   DrillingEventResponseDto,
   DrillingEventDetailResponseDto,
+  PaginatedEventsResponseDto,
+  WellEventSummaryResponseDto,
   toDrillingEventResponseDto,
 } from "./drilling-event.dto";
 import { auditLogger } from "@/infrastructure/audit/audit.logger";
@@ -133,23 +136,89 @@ export class DrillingEventService {
   }
 
   /**
-   * Lists drilling events associated with a specific well.
+   * Lists drilling events associated with a specific well, supporting advanced filters, sorting, and pagination.
    */
   async listEventsByWell(
     wellId: string,
-    filter?: ListDrillingEventsFilter,
-  ): Promise<DrillingEventResponseDto[]> {
+    rawQuery?: unknown,
+  ): Promise<PaginatedEventsResponseDto & DrillingEventResponseDto[]> {
     const well = await this.wellRepo.findById(wellId);
     if (!well) {
       throw AppError.notFound("Well not found");
     }
 
-    const events = await this.drillingEventRepo.listByWellId(wellId, filter);
-    return events.map(toDrillingEventResponseDto);
+    const parsed = queryDrillingEventsSchema.safeParse(rawQuery ?? {});
+    if (!parsed.success) {
+      throw AppError.validation(
+        parsed.error.issues[0]?.message || "Invalid query parameters",
+        parsed.error.issues,
+      );
+    }
+
+    const result = await this.drillingEventRepo.listByWellId(
+      wellId,
+      parsed.data,
+    );
+    const items = result.items.map(toDrillingEventResponseDto);
+    const pagination = result.pagination;
+
+    return Object.assign(items, {
+      items,
+      events: items,
+      pagination,
+    });
   }
 
   /**
-   * Retrieves single event details with source document provenance metadata.
+   * Lists drilling events extracted from a specific document, supporting advanced filters, sorting, and pagination.
+   */
+  async listEventsByDocument(
+    documentId: string,
+    rawQuery?: unknown,
+  ): Promise<PaginatedEventsResponseDto & DrillingEventResponseDto[]> {
+    const document = await this.documentRepo.findById(documentId);
+    if (!document) {
+      throw AppError.notFound("Document not found");
+    }
+
+    const parsed = queryDrillingEventsSchema.safeParse(rawQuery ?? {});
+    if (!parsed.success) {
+      throw AppError.validation(
+        parsed.error.issues[0]?.message || "Invalid query parameters",
+        parsed.error.issues,
+      );
+    }
+
+    const result = await this.drillingEventRepo.listByDocumentId(
+      documentId,
+      parsed.data,
+    );
+    const items = result.items.map(toDrillingEventResponseDto);
+    const pagination = result.pagination;
+
+    return Object.assign(items, {
+      items,
+      events: items,
+      pagination,
+    });
+  }
+
+  /**
+   * Computes a deterministic database-derived summary of events for a well.
+   */
+  async getWellEventSummary(
+    wellId: string,
+  ): Promise<WellEventSummaryResponseDto> {
+    const well = await this.wellRepo.findById(wellId);
+    if (!well) {
+      throw AppError.notFound("Well not found");
+    }
+
+    return this.drillingEventRepo.getSummaryByWellId(wellId);
+  }
+
+  /**
+   * Retrieves single event details with safe well reference and source document provenance metadata.
    */
   async getEventDetail(
     eventId: string,
@@ -162,7 +231,19 @@ export class DrillingEventService {
 
     return {
       ...toDrillingEventResponseDto(result.event),
-      sourceDocument: result.sourceDocument,
+      well: result.well,
+      sourceDocument: {
+        id: result.sourceDocument.id,
+        filename: result.sourceDocument.filename,
+        mimeType: result.sourceDocument.mimeType,
+        documentType: result.sourceDocument.documentType,
+        fileSize: result.sourceDocument.fileSize,
+        fileHash: result.sourceDocument.fileHash,
+        uploadedAt: result.sourceDocument.uploadedAt
+          ? result.sourceDocument.uploadedAt.toISOString()
+          : undefined,
+        ingestionStatus: result.sourceDocument.ingestionStatus,
+      },
     };
   }
 

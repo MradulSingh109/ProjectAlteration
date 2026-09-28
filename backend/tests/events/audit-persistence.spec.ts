@@ -90,6 +90,8 @@ describe("Drilling Events Durable Audit Trail Persistence", () => {
       findById: vi.fn().mockResolvedValue(testEvent),
       findByIdWithSource: vi.fn(),
       listByWellId: vi.fn(),
+      listByDocumentId: vi.fn(),
+      getSummaryByWellId: vi.fn(),
       update: vi.fn().mockImplementation((id, data) =>
         Promise.resolve({
           ...testEvent,

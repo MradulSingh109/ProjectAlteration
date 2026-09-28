@@ -58,20 +58,24 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     await requireAuth(req);
     const { id: wellId } = await params;
 
-    const searchParams = req.nextUrl.searchParams;
-    const eventType = (searchParams.get("eventType") as EventType) || undefined;
-    const severity =
-      (searchParams.get("severity") as EventSeverity) || undefined;
-    const reviewStatus =
-      (searchParams.get("reviewStatus") as ReviewStatus) || undefined;
-
-    const events = await drillingEventService.listEventsByWell(wellId, {
-      eventType,
-      severity,
-      reviewStatus,
+    const queryParams: Record<string, string> = {};
+    req.nextUrl.searchParams.forEach((val, key) => {
+      queryParams[key] = val;
     });
 
-    return successResponse({ events }, 200);
+    const result = await drillingEventService.listEventsByWell(
+      wellId,
+      queryParams,
+    );
+
+    return successResponse(
+      {
+        items: result.items,
+        events: result.items,
+        pagination: result.pagination,
+      },
+      200,
+    );
   } catch (error) {
     return errorResponse(error);
   }

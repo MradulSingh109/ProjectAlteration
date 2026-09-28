@@ -84,6 +84,8 @@ describe("DrillingEventService & Human Review Workflow", () => {
       findById: vi.fn(),
       findByIdWithSource: vi.fn(),
       listByWellId: vi.fn(),
+      listByDocumentId: vi.fn(),
+      getSummaryByWellId: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
     };
@@ -312,7 +314,10 @@ describe("DrillingEventService & Human Review Workflow", () => {
   describe("Event Listing & Detail Retrieval", () => {
     it("lists events for a well with optional filters", async () => {
       vi.mocked(mockWellRepo.findById).mockResolvedValue(testWell);
-      vi.mocked(mockEventRepo.listByWellId).mockResolvedValue([sampleEvent]);
+      vi.mocked(mockEventRepo.listByWellId).mockResolvedValue({
+        items: [sampleEvent],
+        pagination: { page: 1, pageSize: 20, totalItems: 1, totalPages: 1 },
+      });
 
       const events = await service.listEventsByWell(testWell.id, {
         eventType: EventType.MUD_LOSS,
@@ -321,10 +326,13 @@ describe("DrillingEventService & Human Review Workflow", () => {
 
       expect(events).toHaveLength(1);
       expect(events[0].id).toBe("event-uuid-1");
-      expect(mockEventRepo.listByWellId).toHaveBeenCalledWith(testWell.id, {
-        eventType: EventType.MUD_LOSS,
-        severity: EventSeverity.HIGH,
-      });
+      expect(mockEventRepo.listByWellId).toHaveBeenCalledWith(
+        testWell.id,
+        expect.objectContaining({
+          eventType: EventType.MUD_LOSS,
+          severity: EventSeverity.HIGH,
+        }),
+      );
     });
 
     it("retrieves event detail along with safe source document provenance metadata", async () => {
