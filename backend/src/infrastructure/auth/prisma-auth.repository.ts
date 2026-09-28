@@ -3,7 +3,6 @@ import { IAuthRepository } from "@/domain/auth/auth.repository.interface";
 import { Role as DomainRole } from "@/domain/auth/roles";
 import { UserEntity } from "@/domain/auth/user.entity";
 import { SessionEntity, SessionWithUser } from "@/domain/auth/session.entity";
-import { Role as PrismaRole } from "@prisma/client";
 
 export class PrismaAuthRepository implements IAuthRepository {
   async findUserByEmail(email: string): Promise<UserEntity | null> {
@@ -29,7 +28,7 @@ export class PrismaAuthRepository implements IAuthRepository {
       data: {
         email: data.email,
         passwordHash: data.passwordHash,
-        role: (data.role as PrismaRole) || PrismaRole.VIEWER,
+        role: data.role || DomainRole.VIEWER,
       },
     });
     return user as UserEntity;
