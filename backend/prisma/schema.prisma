@@ -222,4 +222,21 @@ model DrillingEvent {
   @@map("drilling_events")
 }
 
+/// Durable audit record for security- and data-integrity-sensitive domain events
+model AuditLog {
+  id           String   @id @default(uuid())
+  actorId      String?  @map("actor_id")
+  actorRole    String?  @map("actor_role")
+  action       String   @map("action")
+  resourceType String   @map("resource_type")
+  resourceId   String?  @map("resource_id")
+  wellId       String?  @map("well_id")
+  details      Json?    @map("details")
+  createdAt    DateTime @default(now()) @map("created_at")
 
+  @@index([action], name: "idx_audit_logs_action")
+  @@index([resourceId], name: "idx_audit_logs_resource_id")
+  @@index([wellId], name: "idx_audit_logs_well_id")
+  @@index([createdAt], name: "idx_audit_logs_created_at")
+  @@map("audit_logs")
+}

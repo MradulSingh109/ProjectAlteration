@@ -7,6 +7,8 @@ import { IWellRepository } from "@/domain/wells/well.repository.interface";
 import { wellRepository } from "@/infrastructure/wells/prisma-well.repository";
 import { IDocumentRepository } from "@/domain/documents/document.repository.interface";
 import { documentRepository } from "@/infrastructure/documents/prisma-document.repository";
+import { IAuditLogRepository } from "@/domain/audit/audit-log.repository.interface";
+import { auditLogRepository } from "@/infrastructure/audit/prisma-audit-log.repository";
 import {
   DrillingEventEntity,
   ReviewStatus,
@@ -30,6 +32,7 @@ export class DrillingEventService {
     private readonly drillingEventRepo: IDrillingEventRepository = drillingEventRepository,
     private readonly wellRepo: IWellRepository = wellRepository,
     private readonly documentRepo: IDocumentRepository = documentRepository,
+    private readonly auditLogRepo: IAuditLogRepository = auditLogRepository,
   ) {}
 
   /**
@@ -44,6 +47,7 @@ export class DrillingEventService {
     wellId: string,
     input: unknown,
     actorId?: string,
+    actorRole?: string,
   ): Promise<DrillingEventResponseDto> {
     // 1. Verify target well exists
     const well = await this.wellRepo.findById(wellId);
@@ -92,10 +96,28 @@ export class DrillingEventService {
       reviewedAt: null,
     });
 
-    // 5. Emit structured audit log
+    // 5. Durably record audit history in database
+    await this.auditLogRepo.create({
+      actorId: actorId ?? null,
+      actorRole: actorRole ?? null,
+      action: "EVENT_CREATE",
+      resourceType: "DRILLING_EVENT",
+      resourceId: createdEvent.id,
+      wellId,
+      details: {
+        eventType: createdEvent.eventType,
+        severity: createdEvent.severity,
+        depthMd: createdEvent.depthMd,
+        sourceDocumentId: createdEvent.sourceDocumentId,
+        sourcePage: createdEvent.sourcePage,
+      },
+    });
+
+    // 6. Emit structured application log
     auditLogger.log({
       action: "EVENT_CREATE",
       actorId,
+      actorRole,
       resourceId: createdEvent.id,
       wellId,
       details: {
@@ -191,6 +213,17 @@ export class DrillingEventService {
         reviewedAt,
       });
 
+      // Durably record approval audit
+      await this.auditLogRepo.create({
+        actorId: reviewerId,
+        actorRole: reviewerRole ?? null,
+        action: "EVENT_APPROVE",
+        resourceType: "DRILLING_EVENT",
+        resourceId: eventId,
+        wellId: event.wellId,
+        details: {},
+      });
+
       auditLogger.log({
         action: "EVENT_APPROVE",
         actorId: reviewerId,
@@ -230,6 +263,17 @@ export class DrillingEventService {
         reviewedAt,
       });
 
+      // Durably record edit audit
+      await this.auditLogRepo.create({
+        actorId: reviewerId,
+        actorRole: reviewerRole ?? null,
+        action: "EVENT_EDIT",
+        resourceType: "DRILLING_EVENT",
+        resourceId: eventId,
+        wellId: event.wellId,
+        details: { editedFields },
+      });
+
       auditLogger.log({
         action: "EVENT_EDIT",
         actorId: reviewerId,
@@ -244,6 +288,17 @@ export class DrillingEventService {
         reviewStatus: ReviewStatus.INVALIDATED,
         reviewedBy: reviewerId,
         reviewedAt,
+      });
+
+      // Durably record invalidation audit
+      await this.auditLogRepo.create({
+        actorId: reviewerId,
+        actorRole: reviewerRole ?? null,
+        action: "EVENT_INVALIDATE",
+        resourceType: "DRILLING_EVENT",
+        resourceId: eventId,
+        wellId: event.wellId,
+        details: {},
       });
 
       auditLogger.log({

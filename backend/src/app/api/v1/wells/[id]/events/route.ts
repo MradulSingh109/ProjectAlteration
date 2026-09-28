@@ -38,6 +38,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       wellId,
       body,
       user.id,
+      user.role,
     );
 
     return successResponse({ event }, 201);

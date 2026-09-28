@@ -3,6 +3,7 @@ import { DrillingEventService } from "@/application/events/drilling-event.servic
 import { IDrillingEventRepository } from "@/domain/events/drilling-event.repository.interface";
 import { IWellRepository } from "@/domain/wells/well.repository.interface";
 import { IDocumentRepository } from "@/domain/documents/document.repository.interface";
+import { IAuditLogRepository } from "@/domain/audit/audit-log.repository.interface";
 import {
   DrillingEventEntity,
   EventType,
@@ -21,6 +22,7 @@ describe("DrillingEventService & Human Review Workflow", () => {
   let mockEventRepo: IDrillingEventRepository;
   let mockWellRepo: IWellRepository;
   let mockDocRepo: IDocumentRepository;
+  let mockAuditLogRepo: IAuditLogRepository;
 
   const testWell: WellEntity = {
     id: "well-uuid-1",
@@ -103,10 +105,29 @@ describe("DrillingEventService & Human Review Workflow", () => {
       delete: vi.fn(),
     };
 
+    mockAuditLogRepo = {
+      create: vi.fn().mockImplementation((input) =>
+        Promise.resolve({
+          id: "audit-1",
+          actorId: input.actorId ?? null,
+          actorRole: input.actorRole ?? null,
+          action: input.action,
+          resourceType: input.resourceType,
+          resourceId: input.resourceId ?? null,
+          wellId: input.wellId ?? null,
+          details: input.details ?? null,
+          createdAt: new Date(),
+        }),
+      ),
+      list: vi.fn(),
+      findById: vi.fn(),
+    };
+
     service = new DrillingEventService(
       mockEventRepo,
       mockWellRepo,
       mockDocRepo,
+      mockAuditLogRepo,
     );
   });
 
