@@ -25,6 +25,7 @@ export function successResponse<T>(
 }
 
 export function errorResponse(error: unknown) {
+  console.error("[API Error]", error);
   if (error instanceof AppError) {
     const body: ApiResponse = {
       success: false,
