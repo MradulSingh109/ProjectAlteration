@@ -61,6 +61,11 @@ export const createDrillingEventSchema = z.object({
     .number()
     .min(0, "extractionConfidence must be between 0.0 and 1.0")
     .max(1, "extractionConfidence must be between 0.0 and 1.0"),
+  nptHours: z.number().min(0, "NPT hours cannot be negative").optional().nullable(),
+  sourceSection: z.string().trim().optional().nullable(),
+  extractionModel: z.string().trim().optional().nullable(),
+  evidence: z.any().optional().nullable(),
+  mlEventId: z.string().trim().optional().nullable(),
 });
 
 export type CreateDrillingEventDto = z.infer<typeof createDrillingEventSchema>;
@@ -243,6 +248,11 @@ export interface DrillingEventResponseDto {
   reviewStatus: ReviewStatus;
   reviewedBy: string | null;
   reviewedAt: string | null;
+  nptHours?: number | null;
+  sourceSection?: string | null;
+  extractionModel?: string | null;
+  evidence?: unknown;
+  mlEventId?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -308,6 +318,11 @@ export function toDrillingEventResponseDto(
     reviewStatus: entity.reviewStatus,
     reviewedBy: entity.reviewedBy,
     reviewedAt: entity.reviewedAt ? entity.reviewedAt.toISOString() : null,
+    nptHours: entity.nptHours ?? null,
+    sourceSection: entity.sourceSection ?? null,
+    extractionModel: entity.extractionModel ?? null,
+    evidence: entity.evidence ?? null,
+    mlEventId: entity.mlEventId ?? null,
     createdAt: entity.createdAt.toISOString(),
     updatedAt: entity.updatedAt.toISOString(),
   };

@@ -209,6 +209,11 @@ model DrillingEvent {
   reviewStatus         ReviewStatus  @default(PENDING_REVIEW) @map("review_status")
   reviewedBy           String?       @map("reviewed_by")
   reviewedAt           DateTime?     @map("reviewed_at")
+  nptHours             Decimal?      @map("npt_hours") @db.Decimal(6, 2)
+  sourceSection        String?       @map("source_section")
+  extractionModel      String?       @map("extraction_model")
+  evidence             Json?         @map("evidence")
+  mlEventId            String?       @map("ml_event_id")
   createdAt            DateTime      @default(now()) @map("created_at")
   updatedAt            DateTime      @updatedAt @map("updated_at")
 
@@ -223,6 +228,7 @@ model DrillingEvent {
   @@index([wellId, reviewStatus], name: "idx_drilling_events_well_review")
   @@index([wellId, depthMd], name: "idx_drilling_events_well_depth")
   @@index([sourceDocumentId, createdAt], name: "idx_drilling_events_doc_created")
+  @@index([mlEventId], name: "idx_drilling_events_ml_event_id")
   @@map("drilling_events")
 }
 

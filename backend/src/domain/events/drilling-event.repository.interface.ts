@@ -35,6 +35,11 @@ export interface CreateDrillingEventInput {
   reviewStatus?: ReviewStatus;
   reviewedBy?: string | null;
   reviewedAt?: Date | null;
+  nptHours?: number | null;
+  sourceSection?: string | null;
+  extractionModel?: string | null;
+  evidence?: unknown;
+  mlEventId?: string | null;
 }
 
 export interface ListDrillingEventsFilter {

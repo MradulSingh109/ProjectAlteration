@@ -33,6 +33,10 @@ export interface IDocumentRepository {
     wellId: string,
     fileHash: string,
   ): Promise<DocumentEntity | null>;
+  findByWellAndFilename?(
+    wellId: string,
+    filename: string,
+  ): Promise<DocumentEntity | null>;
   listByWellId(
     wellId: string,
     filter?: ListDocumentsFilter,

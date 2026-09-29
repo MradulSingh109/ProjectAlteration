@@ -83,6 +83,22 @@ export class PrismaDocumentRepository implements IDocumentRepository {
     return doc ? mapDocument(doc) : null;
   }
 
+  async findByWellAndFilename(
+    wellId: string,
+    filename: string,
+  ): Promise<DocumentEntity | null> {
+    const doc = await this.db.document.findFirst({
+      where: {
+        wellId,
+        filename: {
+          equals: filename,
+          mode: "insensitive",
+        },
+      },
+    });
+    return doc ? mapDocument(doc) : null;
+  }
+
   async listByWellId(
     wellId: string,
     filter?: ListDocumentsFilter,

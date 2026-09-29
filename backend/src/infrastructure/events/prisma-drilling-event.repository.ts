@@ -41,6 +41,11 @@ function mapDrillingEvent(row: any): DrillingEventEntity {
     reviewStatus: row.reviewStatus as ReviewStatus,
     reviewedBy: row.reviewedBy,
     reviewedAt: row.reviewedAt,
+    nptHours: row.nptHours ? toDecimalNumber(row.nptHours) : null,
+    sourceSection: row.sourceSection ?? null,
+    extractionModel: row.extractionModel ?? null,
+    evidence: row.evidence ?? null,
+    mlEventId: row.mlEventId ?? null,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -76,19 +81,19 @@ function buildPrismaWhereClause(
   if (filter?.minDepthMd !== undefined || filter?.maxDepthMd !== undefined) {
     where.depthMd = {};
     if (filter.minDepthMd !== undefined) {
-      where.depthMd.gte = new Prisma.Decimal(filter.minDepthMd.toString());
+      where.depthMd.gte = filter.minDepthMd;
     }
     if (filter.maxDepthMd !== undefined) {
-      where.depthMd.lte = new Prisma.Decimal(filter.maxDepthMd.toString());
+      where.depthMd.lte = filter.maxDepthMd;
     }
   }
   if (filter?.minDepthTvd !== undefined || filter?.maxDepthTvd !== undefined) {
     where.depthTvd = {};
     if (filter.minDepthTvd !== undefined) {
-      where.depthTvd.gte = new Prisma.Decimal(filter.minDepthTvd.toString());
+      where.depthTvd.gte = filter.minDepthTvd;
     }
     if (filter.maxDepthTvd !== undefined) {
-      where.depthTvd.lte = new Prisma.Decimal(filter.maxDepthTvd.toString());
+      where.depthTvd.lte = filter.maxDepthTvd;
     }
   }
   if (
@@ -97,14 +102,10 @@ function buildPrismaWhereClause(
   ) {
     where.extractionConfidence = {};
     if (filter.minConfidence !== undefined) {
-      where.extractionConfidence.gte = new Prisma.Decimal(
-        filter.minConfidence.toString(),
-      );
+      where.extractionConfidence.gte = filter.minConfidence;
     }
     if (filter.maxConfidence !== undefined) {
-      where.extractionConfidence.lte = new Prisma.Decimal(
-        filter.maxConfidence.toString(),
-      );
+      where.extractionConfidence.lte = filter.maxConfidence;
     }
   }
 
@@ -129,10 +130,10 @@ export class PrismaDrillingEventRepository implements IDrillingEventRepository {
         ...(data.id ? { id: data.id } : {}),
         wellId: data.wellId,
         eventType: data.eventType,
-        depthMd: new Prisma.Decimal(data.depthMd.toString()),
+        depthMd: data.depthMd,
         depthTvd:
           data.depthTvd !== undefined && data.depthTvd !== null
-            ? new Prisma.Decimal(data.depthTvd.toString())
+            ? data.depthTvd
             : null,
         formation: data.formation ?? null,
         severity: data.severity,
@@ -142,12 +143,21 @@ export class PrismaDrillingEventRepository implements IDrillingEventRepository {
         outcome: data.outcome ?? null,
         sourceDocumentId: data.sourceDocumentId,
         sourcePage: data.sourcePage,
-        extractionConfidence: new Prisma.Decimal(
-          data.extractionConfidence.toString(),
-        ),
+        extractionConfidence: data.extractionConfidence,
         reviewStatus: data.reviewStatus || ReviewStatus.PENDING_REVIEW,
         reviewedBy: data.reviewedBy ?? null,
         reviewedAt: data.reviewedAt ?? null,
+        nptHours:
+          data.nptHours !== undefined && data.nptHours !== null
+            ? data.nptHours
+            : null,
+        sourceSection: data.sourceSection ?? null,
+        extractionModel: data.extractionModel ?? null,
+        evidence:
+          data.evidence !== undefined && data.evidence !== null
+            ? (data.evidence as any)
+            : undefined,
+        mlEventId: data.mlEventId ?? null,
       },
     });
 
@@ -376,18 +386,13 @@ export class PrismaDrillingEventRepository implements IDrillingEventRepository {
     if (data.reviewedAt !== undefined) updateData.reviewedAt = data.reviewedAt;
 
     if (data.depthMd !== undefined) {
-      updateData.depthMd = new Prisma.Decimal(data.depthMd.toString());
+      updateData.depthMd = data.depthMd;
     }
     if (data.depthTvd !== undefined) {
-      updateData.depthTvd =
-        data.depthTvd !== null
-          ? new Prisma.Decimal(data.depthTvd.toString())
-          : null;
+      updateData.depthTvd = data.depthTvd;
     }
     if (data.extractionConfidence !== undefined) {
-      updateData.extractionConfidence = new Prisma.Decimal(
-        data.extractionConfidence.toString(),
-      );
+      updateData.extractionConfidence = data.extractionConfidence;
     }
 
     const updated = await this.db.drillingEvent.update({
