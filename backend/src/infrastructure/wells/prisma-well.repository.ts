@@ -82,14 +82,30 @@ export class PrismaWellRepository implements IWellRepository {
   async findById(
     id: string,
   ): Promise<(WellEntity & { formations?: FormationEntity[] }) | null> {
-    const well = await this.db.well.findUnique({
-      where: { id },
-      include: {
-        formations: {
-          orderBy: { topMd: "asc" },
+    let well = await this.db.well
+      .findUnique({
+        where: { id },
+        include: {
+          formations: {
+            orderBy: { topMd: "asc" },
+          },
         },
-      },
-    });
+      })
+      .catch(() => null);
+
+    if (!well) {
+      well = await this.db.well
+        .findUnique({
+          where: { wellId: id },
+          include: {
+            formations: {
+              orderBy: { topMd: "asc" },
+            },
+          },
+        })
+        .catch(() => null);
+    }
+
     return well ? mapWell(well) : null;
   }
 

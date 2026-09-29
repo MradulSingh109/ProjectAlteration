@@ -10,7 +10,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,mjs,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,json,md}\"",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@neon/config": "^1.8.2",

@@ -60,7 +60,7 @@ export class AlertLifecycleService {
       throw AppError.notFound("Well not found");
     }
 
-    const result = await this.alertRepo.listByWellId(wellId, filter);
+    const result = await this.alertRepo.listByWellId(well.id, filter);
 
     return {
       items: result.items.map(toAlertDetailResponseDto),

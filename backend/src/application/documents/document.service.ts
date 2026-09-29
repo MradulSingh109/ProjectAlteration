@@ -169,7 +169,7 @@ export class DocumentService {
       throw AppError.notFound("Well not found");
     }
 
-    const docs = await this.documentRepo.listByWellId(wellId, filter);
+    const docs = await this.documentRepo.listByWellId(well.id, filter);
     return docs.map(toDocumentResponseDto);
   }
 

@@ -104,7 +104,7 @@ class EntityExtractor:
         for pattern in patterns:
             match = re.search(pattern, text or "", flags=re.IGNORECASE | re.DOTALL)
             if match:
-                value = re.sub(r"\s+", " ", match.group(1)).strip().rstrip(" ;,")
+                value = re.sub(r"\s+", " ", match.group(1)).strip().rstrip(" ;,.")
                 if value:
                     return value
         return None

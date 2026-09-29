@@ -73,7 +73,7 @@ export class DrillingEventService {
       throw AppError.notFound("Source document not found");
     }
 
-    if (sourceDoc.wellId !== wellId) {
+    if (sourceDoc.wellId !== well.id) {
       throw AppError.validation(
         "Provenance mismatch: Source document belongs to a different well",
       );
@@ -81,7 +81,7 @@ export class DrillingEventService {
 
     // 4. Persist candidate event with PENDING_REVIEW state
     const createdEvent = await this.drillingEventRepo.create({
-      wellId,
+      wellId: well.id,
       eventType: data.eventType,
       depthMd: data.depthMd,
       depthTvd: data.depthTvd ?? null,
@@ -156,7 +156,7 @@ export class DrillingEventService {
     }
 
     const result = await this.drillingEventRepo.listByWellId(
-      wellId,
+      well.id,
       parsed.data,
     );
     const items = result.items.map(toDrillingEventResponseDto);
@@ -214,7 +214,7 @@ export class DrillingEventService {
       throw AppError.notFound("Well not found");
     }
 
-    return this.drillingEventRepo.getSummaryByWellId(wellId);
+    return this.drillingEventRepo.getSummaryByWellId(well.id);
   }
 
   /**

@@ -142,7 +142,7 @@ export class TelemetryIngestionService {
     const criteria = parsed.data;
 
     // 3. Query repository
-    return this.telemetryRepo.listByWellId(wellId, criteria);
+    return this.telemetryRepo.listByWellId(well.id, criteria);
   }
 }
 
