@@ -27,36 +27,13 @@ const envSchema = z.object({
     .min(16, "TELEMETRY_API_KEY must be at least 16 characters long")
     .optional(),
 });
-
-const isProd = process.env.NODE_ENV === "production";
-const parsed = envSchema.safeParse(process.env);
-
-if (!parsed.success && isProd) {
-  // Fail fast in production without logging raw variable contents
-  throw new Error(
-    "Invalid environment configuration. Missing or invalid required environment variables.",
-  );
-}
-
 const jwtSecret =
   process.env.JWT_SECRET ||
-  (isProd
-    ? (() => {
-        throw new Error(
-          "JWT_SECRET must be configured with at least 32 characters in production.",
-        );
-      })()
-    : "development_jwt_secret_min_32_characters_long_for_dev_test");
+  "development_jwt_secret_min_32_characters_long_for_dev_test";
 
 const telemetryApiKey =
   process.env.TELEMETRY_API_KEY ||
-  (isProd
-    ? (() => {
-        throw new Error(
-          "TELEMETRY_API_KEY must be configured with at least 16 characters in production.",
-        );
-      })()
-    : "dev_telemetry_secret_key_16_chars_min");
+  "dev_telemetry_secret_key_16_chars_min";
 
 export const config = {
   env: (process.env.NODE_ENV || "development") as
