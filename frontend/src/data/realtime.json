@@ -1,0 +1,6 @@
+[
+  { "timestamp": "2026-09-28T14:15:00Z", "well_id": "DLJ-114", "depth": 2848, "parameter": "ROP", "value": 12.5 },
+  { "timestamp": "2026-09-28T14:15:00Z", "well_id": "DLJ-114", "depth": 2848, "parameter": "torque", "value": 1850 },
+  { "timestamp": "2026-09-28T14:15:00Z", "well_id": "DLJ-114", "depth": 2848, "parameter": "mud_weight", "value": 1.15 },
+  { "timestamp": "2026-09-28T14:15:00Z", "well_id": "DLJ-114", "depth": 2848, "parameter": "flow", "value": 450 }
+]

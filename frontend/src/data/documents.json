@@ -1,0 +1,7 @@
+[
+  { "document_id": "DOC-101", "filename": "DDR_DLJ_114_Aug.pdf", "type": "DDR", "well_id": "DLJ-114", "status": "indexed", "events_extracted": 14 },
+  { "document_id": "DOC-102", "filename": "WCR_DLJ_098.pdf", "type": "WCR", "well_id": "DLJ-098", "status": "uploaded", "events_extracted": 0 },
+  { "document_id": "DOC-103", "filename": "DDR_DLJ_101_Sep.pdf", "type": "DDR", "well_id": "DLJ-101", "status": "extracting", "events_extracted": 3 },
+  { "document_id": "DOC-104", "filename": "WCR_DLJ_110.pdf", "type": "WCR", "well_id": "DLJ-110", "status": "ocr", "events_extracted": 0 },
+  { "document_id": "DOC-105", "filename": "DDR_DLJ_080_Dec.pdf", "type": "DDR", "well_id": "DLJ-080", "status": "failed", "events_extracted": 0 }
+]

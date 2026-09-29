@@ -12,23 +12,34 @@ ENV/
 .coverage
 htmlcov/
 
-# Node & Next.js
+# Node & Next.js & Vite
 node_modules/
 .next/
 dist/
+dist-ssr/
 build/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
 # Environment
 .env
 .env.local
 .env.*.local
+*.local
 
 # IDE & OS
 .DS_Store
 Thumbs.db
-.vscode/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 .idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

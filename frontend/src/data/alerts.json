@@ -1,0 +1,14 @@
+[
+  { 
+    "alert_id": "A-001", "well_id": "DLJ-114", "status": "open", "created_at": "2026-09-28T14:15:00Z",
+    "risk_type": "MUD_LOSS", "probability": 0.78, "level": "HIGH", "depth": 2848, "model_version": "v1.3", "evidence": ["E-001", "E-002", "E-003"]
+  },
+  { 
+    "alert_id": "A-002", "well_id": "DLJ-114", "status": "open", "created_at": "2026-09-28T14:10:00Z",
+    "risk_type": "STUCK_PIPE", "probability": 0.41, "level": "MEDIUM", "depth": 2848, "model_version": "v1.3", "evidence": ["E-004", "E-013"]
+  },
+  { 
+    "alert_id": "A-003", "well_id": "DLJ-114", "status": "open", "created_at": "2026-09-28T14:05:00Z",
+    "risk_type": "TORQUE_SPIKE", "probability": 0.33, "level": "MEDIUM", "depth": 2848, "model_version": "v1.3", "evidence": ["E-005", "E-010"]
+  }
+]
