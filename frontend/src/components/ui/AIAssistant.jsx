@@ -5,7 +5,7 @@ import { queryAssistant } from '../../api/assistant.api';
 const SUGGESTIONS = [
   "What mud loss events happened near this formation?",
   "Show me stuck pipe incidents below 2900m",
-  "What happened on DLJ-114?",
+  "What happened on DLJ-07?",
   "Any cementing issues nearby?"
 ];
 
@@ -23,9 +23,9 @@ export default function AIAssistant() {
   // Derive wellId context from current route
   let wellIdContext = null;
   if (location.pathname === '/') {
-    wellIdContext = searchParams.get('well') || 'DLJ-114';
+    wellIdContext = searchParams.get('well') || 'DLJ-07';
   } else if (location.pathname === '/wells') {
-    wellIdContext = searchParams.get('id') || 'DLJ-114';
+    wellIdContext = searchParams.get('id') || 'DLJ-07';
   }
   
   // Also track user clearing the context manually in widget

@@ -7,7 +7,7 @@ import EventDetailCard from '../components/events/EventDetailCard';
 
 export default function WellDetails() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialWellId = searchParams.get('id') || 'DLJ-114';
+  const initialWellId = searchParams.get('id') || 'DLJ-07';
   const autoEventId = searchParams.get('event') || null;
   
   const [wellId, setWellId] = useState(initialWellId);

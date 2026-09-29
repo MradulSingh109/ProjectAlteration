@@ -1,7 +1,0 @@
-[
-  { "risk_type": "MUD_LOSS", "probability": 0.78, "level": "HIGH", "depth": 2848, "model_version": "v1.3", "evidence": ["E-001", "E-002", "E-003"] },
-  { "risk_type": "STUCK_PIPE", "probability": 0.41, "level": "MEDIUM", "depth": 2848, "model_version": "v1.3", "evidence": ["E-004", "E-013"] },
-  { "risk_type": "OVERPRESSURE", "probability": 0.09, "level": "LOW", "depth": 2848, "model_version": "v1.3", "evidence": ["E-006"] },
-  { "risk_type": "TORQUE_SPIKE", "probability": 0.33, "level": "MEDIUM", "depth": 2848, "model_version": "v1.3", "evidence": ["E-005", "E-010"] },
-  { "risk_type": "CEMENTING", "probability": 0.12, "level": "LOW", "depth": 2848, "model_version": "v1.3", "evidence": ["E-007", "E-015"] }
-]

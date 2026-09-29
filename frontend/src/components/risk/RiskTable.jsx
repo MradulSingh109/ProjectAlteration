@@ -2,7 +2,7 @@
  * RiskTable — Compact risk assessment summary.
  * Shows all risk types with probability bars, used in the right sidebar below alerts.
  */
-export default function RiskTable({ risks }) {
+export default function RiskTable({ risks, wellId }) {
   if (!risks || risks.length === 0) return null;
 
   // Sort by probability descending
@@ -11,7 +11,7 @@ export default function RiskTable({ risks }) {
   return (
     <div className="bg-panel border border-line rounded p-4">
       <div className="text-[11px] text-dim uppercase tracking-wider mb-3 font-semibold">
-        Risk Assessment — DLJ-114
+        Risk Assessment — {wellId || 'Active Well'}
       </div>
       <div className="space-y-2.5">
         {sorted.map(risk => (

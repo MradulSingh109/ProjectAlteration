@@ -1,104 +1,158 @@
-// Replaces endpoints:
-// GET /api/v1/wells
-// GET /api/v1/wells/{well_id}
-// GET /api/v1/wells/{well_id}/nearby?radius_km=...
-// GET /api/v1/wells/{well_id}/events
-// GET /api/v1/wells/{well_id}/timeline?depth_from=...&depth_to=...
+import { apiRequest } from './client';
 
-import wellsData from '../data/wells.json';
-import nearbyData from '../data/nearby.json';
-import eventsData from '../data/events.json';
+// Schema normalizer for well entities
+function normalizeWell(w) {
+  if (!w) return null;
+  const formationName =
+    w.formations && w.formations.length > 0
+      ? w.formations[0].name
+      : w.formation || 'Barail Sandstone';
 
-const delay = (ms = 300) => new Promise(resolve => setTimeout(resolve, ms));
+  return {
+    ...w,
+    id: w.id,
+    well_id: w.wellId || w.well_id,
+    name: w.name || w.wellId || w.well_id,
+    field: w.field || 'Duliajan',
+    lat: Number(w.latitude !== undefined ? w.latitude : w.lat),
+    lon: Number(w.longitude !== undefined ? w.longitude : w.lon),
+    latitude: Number(w.latitude !== undefined ? w.latitude : w.lat),
+    longitude: Number(w.longitude !== undefined ? w.longitude : w.lon),
+    formation: formationName,
+    status: (w.status || 'COMPLETED').toLowerCase() === 'drilling' ? 'active' : (w.status || 'completed').toLowerCase(),
+    plannedDepthMd: w.plannedDepthMd ? Number(w.plannedDepthMd) : 3500,
+  };
+}
 
 export const getWells = async () => {
-  await delay();
-  return wellsData;
+  const data = await apiRequest('/wells');
+  const wells = data.wells || data.items || data || [];
+  return wells.map(normalizeWell);
 };
 
 export const getWell = async (wellId) => {
-  await delay();
-  return wellsData.find(w => w.well_id === wellId);
+  const data = await apiRequest(`/wells/${encodeURIComponent(wellId)}`);
+  const well = data.well || data;
+  return normalizeWell(well);
 };
 
-export const getNearbyWells = async (wellId, radiusKm) => {
-  await delay();
-  // Filter nearby.json by distance
-  const maxDist = radiusKm * 1000;
-  const filtered = nearbyData.filter(n => n.distance_m <= maxDist);
-  
-  // Merge lat/lon/name/formation from wells.json
-  return filtered.map(n => {
-    const wellInfo = wellsData.find(w => w.well_id === n.well_id) || {};
-    return {
-      ...n,
-      lat: wellInfo.lat,
-      lon: wellInfo.lon,
-      name: wellInfo.name,
-      formation: wellInfo.formation
-    };
-  });
+export const getNearbyWells = async (wellId, radiusKm = 25) => {
+  try {
+    const data = await apiRequest(`/wells/${encodeURIComponent(wellId)}/offsets?radiusKm=${radiusKm}`);
+    const items = data.items || [];
+
+    return items.map((n) => {
+      const off = n.offsetWell || {};
+      const formationName =
+        n.formationMatches && n.formationMatches.length > 0
+          ? n.formationMatches[0].formation
+          : 'Barail Sandstone';
+
+      return {
+        well_id: off.wellId,
+        name: off.name || off.wellId,
+        field: off.field,
+        lat: Number(off.latitude),
+        lon: Number(off.longitude),
+        distance_m: Math.round((n.distanceKm || 0) * 1000),
+        similarity_score: Number((n.relevanceScore?.score ?? 0).toFixed(2)),
+        formation_match: (n.formationMatches || []).length > 0,
+        formation: formationName,
+        status: (off.status || 'COMPLETED').toLowerCase(),
+        totalEvents: n.historicalEvents?.totalEvents ?? 0,
+        severityCount: n.historicalEvents?.bySeverity || {},
+        typeCount: n.historicalEvents?.byEventType || {},
+      };
+    });
+  } catch (err) {
+    console.warn(`[Wells API] Failed to fetch offsets for ${wellId}:`, err.message);
+    return [];
+  }
 };
 
 export const getWellEvents = async (wellId) => {
-  await delay();
-  return eventsData.filter(e => e.well_id === wellId);
+  try {
+    const data = await apiRequest(`/wells/${encodeURIComponent(wellId)}/events`);
+    const events = data.events || data.items || [];
+    return events.map((e) => ({
+      ...e,
+      event_id: e.eventId || e.event_id || e.id,
+      well_id: e.wellId || e.well_id || wellId,
+      type: (e.eventType || e.type || '').toLowerCase(),
+      depth_md: Number(e.depthMd !== undefined ? e.depthMd : e.depth_md),
+      formation: e.formation || 'Barail Sandstone',
+      severity: (e.severity || 'low').toLowerCase(),
+      evidence: e.evidence || {
+        document: e.sourceDocument || 'DDR',
+        page: e.sourcePage || 1,
+        note: e.mitigation || e.description || '',
+      },
+    }));
+  } catch (err) {
+    console.warn(`[Wells API] Failed to fetch events for ${wellId}:`, err.message);
+    return [];
+  }
 };
 
-export const getTimeline = async (wellId, depthFrom, depthTo) => {
-  await delay();
-  // Returns events from the nearby wells inside that depth range, sorted by depth
-  // wellId here is the active well. We want events from nearby wells.
-  const nearbyWellIds = nearbyData.map(n => n.well_id);
-  
-  const events = eventsData.filter(e => {
-    const isNearby = nearbyWellIds.includes(e.well_id);
-    const inRange = e.depth_md >= depthFrom && e.depth_md <= depthTo;
-    return isNearby && inRange;
-  });
-  
-  return events.sort((a, b) => a.depth_md - b.depth_md);
-};
+export const getTimeline = async (wellId, depthFrom = 0, depthTo = 5000) => {
+  try {
+    const nearby = await getNearbyWells(wellId, 50);
+    const nearbyWellIds = nearby.map((n) => n.well_id);
 
-export const getWellComparisonStats = async (wellIds) => {
-  await delay();
-  return wellIds.map(id => {
-    const wellProfile = wellsData.find(w => w.well_id === id) || {};
-    const nearbyProfile = nearbyData.find(n => n.well_id === id) || {};
-    const wellEvents = eventsData.filter(e => e.well_id === id);
+    // Fetch events across all wells via /events
+    const data = await apiRequest(`/events?depth_from=${depthFrom}&depth_to=${depthTo}`);
+    const allEvents = data.events || data.items || [];
 
-    const severityCount = { high: 0, medium: 0, low: 0 };
-    const typeCount = {};
-    let deepest = null;
-    let shallowest = null;
-
-    wellEvents.forEach(e => {
-      if (e.severity) {
-        severityCount[e.severity] = (severityCount[e.severity] || 0) + 1;
-      }
-      if (e.type) {
-        typeCount[e.type] = (typeCount[e.type] || 0) + 1;
-      }
-      
-      if (e.depth_md !== undefined) {
-        if (deepest === null || e.depth_md > deepest) deepest = e.depth_md;
-        if (shallowest === null || e.depth_md < shallowest) shallowest = e.depth_md;
-      }
+    const filtered = allEvents.filter((e) => {
+      const isNearby = nearbyWellIds.includes(e.well_id) || e.well_id === wellId;
+      const inRange = e.depth_md >= depthFrom && e.depth_md <= depthTo;
+      return isNearby && inRange;
     });
 
-    return {
-      well_id: id,
-      name: wellProfile.name,
-      formation: wellProfile.formation,
-      status: wellProfile.status,
-      distance_m: nearbyProfile.distance_m || 0,
-      similarity_score: nearbyProfile.similarity_score || 0,
-      formation_match: nearbyProfile.formation_match !== undefined ? nearbyProfile.formation_match : (wellProfile.formation ? true : false),
-      totalEvents: wellEvents.length,
-      severityCount,
-      typeCount,
-      deepest,
-      shallowest
-    };
-  });
+    return filtered.sort((a, b) => a.depth_md - b.depth_md);
+  } catch (err) {
+    console.warn('[Wells API] Failed to fetch timeline:', err.message);
+    return [];
+  }
+};
+
+export const getWellComparisonStats = async (wellIds = []) => {
+  const results = [];
+  for (const id of wellIds) {
+    try {
+      const [well, events] = await Promise.all([getWell(id), getWellEvents(id)]);
+      const severityCount = { high: 0, medium: 0, low: 0 };
+      const typeCount = {};
+      let deepest = null;
+      let shallowest = null;
+
+      events.forEach((e) => {
+        const sev = (e.severity || 'low').toLowerCase();
+        if (severityCount[sev] !== undefined) severityCount[sev]++;
+        if (e.type) typeCount[e.type] = (typeCount[e.type] || 0) + 1;
+        if (e.depth_md !== undefined) {
+          if (deepest === null || e.depth_md > deepest) deepest = e.depth_md;
+          if (shallowest === null || e.depth_md < shallowest) shallowest = e.depth_md;
+        }
+      });
+
+      results.push({
+        well_id: id,
+        name: well?.name || id,
+        formation: well?.formation || 'Barail Sandstone',
+        status: well?.status || 'completed',
+        distance_m: 0,
+        similarity_score: 1.0,
+        formation_match: true,
+        totalEvents: events.length,
+        severityCount,
+        typeCount,
+        deepest: deepest ?? 0,
+        shallowest: shallowest ?? 0,
+      });
+    } catch (e) {
+      console.warn(`[Wells API] Compare failed for ${id}:`, e.message);
+    }
+  }
+  return results;
 };

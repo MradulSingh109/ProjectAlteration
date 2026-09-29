@@ -77,9 +77,9 @@ export default function Documents() {
       if (!file.name.toLowerCase().endsWith('.pdf')) return;
       docIdCounter += 1;
       const newDocId = `DOC-${docIdCounter}`;
-      // Infer a well_id from filename if possible (e.g. DLJ_114) — else use DLJ-114 default
-      const match = file.name.match(/DLJ[_-](\d+)/i);
-      const wellId = match ? `DLJ-${match[1]}` : 'DLJ-114';
+      // Infer a well_id from filename if possible (e.g. DLJ-07, NHK-07, W-087) — else use DLJ-07 default
+      const match = file.name.match(/(DLJ|NHK|HGJ|NHR|W)[_-]?(\d+)/i);
+      const wellId = match ? `${match[1].toUpperCase()}-${match[2]}` : 'DLJ-07';
       const docType = file.name.toUpperCase().startsWith('WCR') ? 'WCR' : 'DDR';
       const newDoc = {
         document_id: newDocId,

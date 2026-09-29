@@ -14,7 +14,7 @@ import NearbyWellsList from '../components/wells/NearbyWellsList';
 export default function WellMap() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [radius, setRadius] = useState(10);
-  const activeWellId = searchParams.get('well') || 'DLJ-114';
+  const activeWellId = searchParams.get('well') || 'DLJ-07';
 
   const setActiveWellId = (id) => {
     setSearchParams(prev => {
@@ -44,7 +44,7 @@ export default function WellMap() {
   useEffect(() => {
     async function fetchActiveData() {
       if (allWells.length === 0) return;
-      const active = allWells.find(w => w.well_id === activeWellId);
+      const active = allWells.find(w => w.well_id === activeWellId) || allWells[0];
       setActiveWell(active);
 
       const activeAlerts = await getAlerts();
@@ -64,7 +64,7 @@ export default function WellMap() {
       setLoading(false);
     }
     fetchNearby();
-  }, [radius]);
+  }, [radius, activeWellId]);
 
   const highAlerts = alerts.filter(a => a.level === 'HIGH');
   
