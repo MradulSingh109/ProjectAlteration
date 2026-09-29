@@ -1,0 +1,130 @@
+{
+  "dataset_schema_version": "1.0.0",
+  "taxonomy_schema_version": "1.0.0",
+  "document_count": 12,
+  "documents_without_events_json": [],
+  "documents_without_well_id": [],
+  "event_count": 16,
+  "unique_well_count": 12,
+  "unique_formation_count": 4,
+  "event_type_counts": {
+    "MUD_LOSS": 6,
+    "KICK": 2,
+    "STUCK_PIPE": 4,
+    "FISHING": 0,
+    "TORQUE_SPIKE": 3,
+    "PRESSURE_SPIKE": 0,
+    "OVERPRESSURE": 0,
+    "LOST_CIRCULATION": 0,
+    "CEMENTING_FAILURE": 0,
+    "CASING_PROBLEM": 0,
+    "NPT": 1,
+    "FORMATION_CHANGE": 0,
+    "WELL_CONTROL": 0
+  },
+  "severity_counts": {
+    "LOW": 2,
+    "MEDIUM": 3,
+    "HIGH": 4,
+    "CRITICAL": 4
+  },
+  "field_coverage": {
+    "event_id": {
+      "present": 16,
+      "missing": 0
+    },
+    "well_id": {
+      "present": 16,
+      "missing": 0
+    },
+    "event_type": {
+      "present": 16,
+      "missing": 0
+    },
+    "depth_md": {
+      "present": 13,
+      "missing": 3
+    },
+    "depth_tvd": {
+      "present": 0,
+      "missing": 16
+    },
+    "formation": {
+      "present": 12,
+      "missing": 4
+    },
+    "severity": {
+      "present": 13,
+      "missing": 3
+    },
+    "description": {
+      "present": 16,
+      "missing": 0
+    },
+    "cause": {
+      "present": 5,
+      "missing": 11
+    },
+    "mitigation": {
+      "present": 13,
+      "missing": 3
+    },
+    "outcome": {
+      "present": 6,
+      "missing": 10
+    },
+    "source_document": {
+      "present": 16,
+      "missing": 0
+    },
+    "source_page": {
+      "present": 16,
+      "missing": 0
+    },
+    "confidence": {
+      "present": 16,
+      "missing": 0
+    },
+    "npt_hours": {
+      "present": 9,
+      "missing": 7
+    },
+    "source_section": {
+      "present": 16,
+      "missing": 0
+    },
+    "extraction_model": {
+      "present": 16,
+      "missing": 0
+    },
+    "extraction_timestamp": {
+      "present": 16,
+      "missing": 0
+    },
+    "evidence": {
+      "present": 16,
+      "missing": 0
+    }
+  },
+  "well_coordinate_coverage": {
+    "wells_with_latitude": 6,
+    "wells_with_longitude": 6,
+    "coordinate_conflicts": {}
+  },
+  "source_documents": [
+    "CementingReport_W076",
+    "DDR_DLJ-07_2021-06-18",
+    "DDR_DLJ-12_2019-03-14",
+    "DDR_DLJ-18_2020-01-27_SCANNED",
+    "DDR_DLJ-21_2018-09-05",
+    "DDR_HGJ-02_2014-02-22",
+    "DDR_NHK-07_2016-11-02",
+    "DDR_W093_142",
+    "DDR_W105_118",
+    "MudLog_W098_Barail",
+    "OIL_UpperAssam_Barail_Loss_Study_2025",
+    "WCR_W087_Final"
+  ],
+  "events_csv": "ml\\data\\processed\\good_data_processed\\historical_dataset\\events.csv",
+  "wells_csv": "ml\\data\\processed\\good_data_processed\\historical_dataset\\wells.csv"
+}

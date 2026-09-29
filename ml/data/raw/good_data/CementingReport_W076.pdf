@@ -1,0 +1,57 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 4 0 R >> >> /MediaBox [0 0 612 792] /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+5 0 obj
+<< /Length 1545 >>
+stream
+BT
+/F1 10 Tf
+50 760 Td
+14 TL
+(OIL INDIA LIMITED \(OIL\) - DULIAJAN HEADQUARTERS) Tj T*
+(DOCUMENT: CementingReport_W076.pdf \(Casing & Cementing Report\)) Tj T*
+(WELL ID: W-076 | FORMATION: Tipam Sandstone | INTERVAL: 2,400 m – 3,100 m) Tj T*
+(--------------------------------------------------------------------------------) Tj T*
+(DATE: 2024-11-02 | AUTHOR: OIL Well Engineering & Cementing Services) Tj T*
+(SHA-256 INTEGRITY HASH: 44ff072bd8fbc7a5dc7f981e2599b4537a31282e7f9c3c029e77f211bf4141d1) Tj T*
+(EXTRACTED EVENT: Differential Pipe Sticking @ 2780 m) Tj T*
+(SEVERITY: MEDIUM | LOSS RATE: 1.5 bbl/hr) Tj T*
+(MITIGATION: 15 bbl surfactant pipe-lax pill + low-density lightweight lead cement slurry \(1.42 sg\)) Tj T*
+(--------------------------------------------------------------------------------) Tj T*
+() Tj T*
+(SUMMARY: 9-5/8" Intermediate Casing & Differential Sticking Incident Report in) Tj T*
+(Tipam Sandstone at 2,780 m. VERBATIM OPERATIONAL LOG: OPERATIONAL SUMMARY:) Tj T*
+(Differential sticking encountered at 2,780 m across high-permeability \(520 mD\)) Tj T*
+(Tipam sandstone due to 340 psi hydrostatic overbalance. Freed pipe using 15 bbl) Tj T*
+(organic surfactant spotting fluid. Subsequent 9-5/8" casing cementing utilized) Tj T*
+(fiber-laced 1.42 sg lead slurry to prevent breakdown across weak Tipam-Barail) Tj T*
+(transition.) Tj T*
+() Tj T*
+(--------------------------------------------------------------------------------) Tj T*
+(SECURITY WATERMARK: CONFIDENTIAL - OIL INDIA LTD - eRTMAC-NWIS VERIFIED) Tj T*
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000229 00000 n 
+0000000297 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1895
+%%EOF

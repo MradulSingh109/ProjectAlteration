@@ -1,0 +1,68 @@
+{
+  "events": [
+    {
+      "event_id": "WCR_W087_Final:event-001",
+      "well_id": "W-087",
+      "event_type": "MUD_LOSS",
+      "depth_md": 3430,
+      "depth_tvd": null,
+      "formation": null,
+      "severity": "CRITICAL",
+      "description": "Stuck Pipe & Mud Loss @ 3430 m",
+      "cause": null,
+      "mitigation": "20 bbl LCM Pill + Hydraulic jarring (42T) + 15 bbl Organic Spotting Fluid + 3% KCl/Asphaltene inhibition",
+      "outcome": null,
+      "source_document": "WCR_W087_Final.pdf",
+      "source_page": 1,
+      "confidence": 0.9,
+      "npt_hours": null,
+      "source_section": "EXTRACTED EVENT",
+      "extraction_model": "nwis-rules-baseline-v1",
+      "extraction_timestamp": "2026-09-28T05:32:19+00:00",
+      "evidence": [
+        {
+          "field": "event_type",
+          "original_text": "EXTRACTED EVENT: Stuck Pipe & Mud Loss @ 3430 m",
+          "source_document": "WCR_W087_Final.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        },
+        {
+          "field": "description",
+          "original_text": "EXTRACTED EVENT: Stuck Pipe & Mud Loss @ 3430 m",
+          "source_document": "WCR_W087_Final.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        },
+        {
+          "field": "well_id",
+          "original_text": "WELL ID: W-087 | FORMATION: Barail Coal-Shale | INTERVAL: 3,390 m â 3,460 m",
+          "source_document": "WCR_W087_Final.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        },
+        {
+          "field": "depth_md",
+          "original_text": "EXTRACTED EVENT: Stuck Pipe & Mud Loss @ 3430 m",
+          "source_document": "WCR_W087_Final.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        },
+        {
+          "field": "severity",
+          "original_text": "SEVERITY: CRITICAL | LOSS RATE: 12.8 bbl/hr",
+          "source_document": "WCR_W087_Final.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        },
+        {
+          "field": "mitigation",
+          "original_text": "MITIGATION: 20 bbl LCM Pill + Hydraulic jarring (42T) + 15 bbl Organic Spotting Fluid + 3% KCl/Asphaltene inhibition",
+          "source_document": "WCR_W087_Final.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        }
+      ]
+    }
+  ]
+}

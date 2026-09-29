@@ -1,0 +1,82 @@
+{
+  "events": [
+    {
+      "event_id": "DDR_DLJ-18_2020-01-27_SCANNED:event-001",
+      "well_id": "DLJ-18",
+      "event_type": "TORQUE_SPIKE",
+      "depth_md": 2951,
+      "depth_tvd": null,
+      "formation": "Barail",
+      "severity": "LOW",
+      "description": "TORQUE SPIKE at 2,951 m MD (BARAIL)",
+      "cause": null,
+      "mitigation": "Reduced WOB/RPM and circulated bottoms-up.",
+      "outcome": null,
+      "source_document": "DDR_DLJ-18_2020-01-27_SCANNED.pdf",
+      "source_page": 1,
+      "confidence": 0.9,
+      "npt_hours": 1.0,
+      "source_section": "3. DRILLING EVENTS / REMARKS",
+      "extraction_model": "nwis-rules-baseline-v1",
+      "extraction_timestamp": "2026-09-28T05:32:19+00:00",
+      "evidence": [
+        {
+          "field": "event_type",
+          "original_text": "TORQUE SPIKE at 2,951 m MD (BARAIL) | Severity: LOW | NPT: 1.0 hrs | MW: 10.4 ppg",
+          "source_document": "DDR_DLJ-18_2020-01-27_SCANNED.pdf",
+          "source_page": 1,
+          "source_section": "3. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "description",
+          "original_text": "TORQUE SPIKE at 2,951 m MD (BARAIL) | Severity: LOW | NPT: 1.0 hrs | MW: 10.4 ppg",
+          "source_document": "DDR_DLJ-18_2020-01-27_SCANNED.pdf",
+          "source_page": 1,
+          "source_section": "3. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "well_id",
+          "original_text": "Well: DLJ-18",
+          "source_document": "DDR_DLJ-18_2020-01-27_SCANNED.pdf",
+          "source_page": 1,
+          "source_section": "3. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "depth_md",
+          "original_text": "TORQUE SPIKE at 2,951 m MD (BARAIL) | Severity: LOW | NPT: 1.0 hrs | MW: 10.4 ppg",
+          "source_document": "DDR_DLJ-18_2020-01-27_SCANNED.pdf",
+          "source_page": 1,
+          "source_section": "3. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "formation",
+          "original_text": "TORQUE SPIKE at 2,951 m MD (BARAIL) | Severity: LOW | NPT: 1.0 hrs | MW: 10.4 ppg",
+          "source_document": "DDR_DLJ-18_2020-01-27_SCANNED.pdf",
+          "source_page": 1,
+          "source_section": "3. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "severity",
+          "original_text": "TORQUE SPIKE at 2,951 m MD (BARAIL) | Severity: LOW | NPT: 1.0 hrs | MW: 10.4 ppg",
+          "source_document": "DDR_DLJ-18_2020-01-27_SCANNED.pdf",
+          "source_page": 1,
+          "source_section": "3. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "mitigation",
+          "original_text": "Mitigation: Reduced WOB/RPM and circulated bottoms-up.",
+          "source_document": "DDR_DLJ-18_2020-01-27_SCANNED.pdf",
+          "source_page": 1,
+          "source_section": "3. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "npt_hours",
+          "original_text": "TORQUE SPIKE at 2,951 m MD (BARAIL) | Severity: LOW | NPT: 1.0 hrs | MW: 10.4 ppg",
+          "source_document": "DDR_DLJ-18_2020-01-27_SCANNED.pdf",
+          "source_page": 1,
+          "source_section": "3. DRILLING EVENTS / REMARKS"
+        }
+      ]
+    }
+  ]
+}

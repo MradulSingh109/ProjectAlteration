@@ -1,0 +1,75 @@
+{
+  "events": [
+    {
+      "event_id": "DDR_W093_142:event-001",
+      "well_id": "W-093",
+      "event_type": "MUD_LOSS",
+      "depth_md": 3428,
+      "depth_tvd": null,
+      "formation": "Barail",
+      "severity": "CRITICAL",
+      "description": "Mud Loss @ 3428 m",
+      "cause": null,
+      "mitigation": "25 bbl High-Concentration LCM Pill (15 ppb Medium Nut-Plug + 10 ppb Coarse Flake Mica + 8 ppb Sized CaCO3)",
+      "outcome": null,
+      "source_document": "DDR_W093_142.pdf",
+      "source_page": 1,
+      "confidence": 0.9,
+      "npt_hours": null,
+      "source_section": "EXTRACTED EVENT",
+      "extraction_model": "nwis-rules-baseline-v1",
+      "extraction_timestamp": "2026-09-28T05:32:19+00:00",
+      "evidence": [
+        {
+          "field": "event_type",
+          "original_text": "EXTRACTED EVENT: Mud Loss @ 3428 m",
+          "source_document": "DDR_W093_142.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        },
+        {
+          "field": "description",
+          "original_text": "EXTRACTED EVENT: Mud Loss @ 3428 m",
+          "source_document": "DDR_W093_142.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        },
+        {
+          "field": "well_id",
+          "original_text": "WELL ID: W-093 | FORMATION: Barail Coal-Shale | INTERVAL: 3,410 m â 3,448 m",
+          "source_document": "DDR_W093_142.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        },
+        {
+          "field": "depth_md",
+          "original_text": "EXTRACTED EVENT: Mud Loss @ 3428 m",
+          "source_document": "DDR_W093_142.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        },
+        {
+          "field": "formation",
+          "original_text": "WELL ID: W-093 | FORMATION: Barail Coal-Shale | INTERVAL: 3,410 m â 3,448 m",
+          "source_document": "DDR_W093_142.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        },
+        {
+          "field": "severity",
+          "original_text": "SEVERITY: CRITICAL | LOSS RATE: 15.4 bbl/hr",
+          "source_document": "DDR_W093_142.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        },
+        {
+          "field": "mitigation",
+          "original_text": "MITIGATION: 25 bbl High-Concentration LCM Pill (15 ppb Medium Nut-Plug + 10 ppb Coarse Flake Mica + 8 ppb Sized CaCO3)",
+          "source_document": "DDR_W093_142.pdf",
+          "source_page": 1,
+          "source_section": "EXTRACTED EVENT"
+        }
+      ]
+    }
+  ]
+}

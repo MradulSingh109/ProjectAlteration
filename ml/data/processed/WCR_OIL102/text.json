@@ -1,5 +1,0 @@
-{
-  "file_name": "WCR_OIL102.pdf",
-  "document_type": "well_completion_report",
-  "cleaned_text": "Synthetic Well Completion Report — OIL-102\nNOTICE\nSYNTHETIC TRAINING DOCUMENT — NOT REAL OIL DATA.\nWell Information\nField\nWell ID\nLatitude\nLongitude\nSpud\nCompletion\nNorth Ridge\nOIL-102\n26.1234\n94.1234\n2024- \n2024- \nFormation Tops\nFormation\nTop MD\nBottom MD\nLithology\nF-A\n0\n1450\nShale\nF-B\n1450\n2280\nSandstone\nF-X\n2280\n3190\nFractured limestone\nF-Y\n3190\n3650\nShale/sandstone\nMajor Events\nDepth\nEvent\nSeverity\nCause\nMitigation\n2845 m\nMud loss\nHIGH\nFractured limestone\nLCM treatment\n2910 m\nTorque spike\nMEDIUM\nFormation interaction\nReduced WOB/RPM\n3120 m\nStuck pipe\nHIGH\nDifferential sticking\nCirculation + freeing\nprocedure\nLessons Learned\nFractured limestone around 2800–2950 m was associated with severe losses.\nTorque increased near 2910 m.\nStuck pipe at 3120 m was attributed to differential sticking."
-}

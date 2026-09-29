@@ -1,0 +1,58 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 4 0 R >> >> /MediaBox [0 0 612 792] /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+5 0 obj
+<< /Length 1624 >>
+stream
+BT
+/F1 10 Tf
+50 760 Td
+14 TL
+(OIL INDIA LIMITED \(OIL\) - DULIAJAN HEADQUARTERS) Tj T*
+(DOCUMENT: DDR_W105_118.pdf \(Daily Drilling Report \(DDR\)\)) Tj T*
+(WELL ID: W-105 | FORMATION: Barail Coal-Shale | INTERVAL: 3,420 m – 3,465 m) Tj T*
+(--------------------------------------------------------------------------------) Tj T*
+(DATE: 2026-03-11 | AUTHOR: Drilling Operations Cell, Moran Extension) Tj T*
+(SHA-256 INTEGRITY HASH: 9987be42ca86ae17492ef709661e2839af2a8974f2d486583dbed3e7e813a97d) Tj T*
+(EXTRACTED EVENT: Partial Seepage Loss @ 3438 m) Tj T*
+(SEVERITY: MEDIUM | LOSS RATE: 9.6 bbl/hr) Tj T*
+(MITIGATION: Continuous background 6 ppb micronized cellulose fiber + 15 bbl Mica sweep) Tj T*
+(--------------------------------------------------------------------------------) Tj T*
+() Tj T*
+(SUMMARY: Daily Drilling Report #118 demonstrating preventive background LCM) Tj T*
+(treatment in Moran-North-105 that restricted Barail mud losses to 9.6 bbl/hr with) Tj T*
+(zero stuck-pipe NPT. VERBATIM OPERATIONAL LOG: 14:00 - 20:00 HRS: Based on offset) Tj T*
+(correlation from W-093 and W-087, pre-treated active system with 6 ppb micronized) Tj T*
+(cellulose fiber at 3,385 m prior to entering middle Barail coal seams. Observed) Tj T*
+(partial losses of 9.6 bbl/hr at 3,438 m which rapidly self-healed to <1.0 bbl/hr) Tj T*
+(following a 15 bbl Mica sweep. Confirmed effectiveness of pre-emptive wellbore) Tj T*
+(strengthening.) Tj T*
+() Tj T*
+(--------------------------------------------------------------------------------) Tj T*
+(SECURITY WATERMARK: CONFIDENTIAL - OIL INDIA LTD - eRTMAC-NWIS VERIFIED) Tj T*
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000229 00000 n 
+0000000297 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1974
+%%EOF

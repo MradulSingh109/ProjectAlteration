@@ -1,0 +1,96 @@
+{
+  "events": [
+    {
+      "event_id": "DDR_DLJ-07_2021-06-18:event-001",
+      "well_id": "DLJ-07",
+      "event_type": "KICK",
+      "depth_md": 3112,
+      "depth_tvd": null,
+      "formation": "Kopili",
+      "severity": "CRITICAL",
+      "description": "KICK at 3,112 m MD (KOPILI)",
+      "cause": "Kopili shale",
+      "mitigation": "Shut in well on annular preventer, circulated kick out via driller's method and raised MW from 12.1 to 13.0 ppg.",
+      "outcome": "circulated out via driller's method",
+      "source_document": "DDR_DLJ-07_2021-06-18.pdf",
+      "source_page": 1,
+      "confidence": 0.9,
+      "npt_hours": 46.0,
+      "source_section": "4. DRILLING EVENTS / REMARKS",
+      "extraction_model": "nwis-rules-baseline-v1",
+      "extraction_timestamp": "2026-09-28T05:32:19+00:00",
+      "evidence": [
+        {
+          "field": "event_type",
+          "original_text": "KICK at 3,112 m MD (KOPILI) | Severity: CRITICAL | NPT: 46.0 hrs | MW: 12.1 ppg",
+          "source_document": "DDR_DLJ-07_2021-06-18.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "description",
+          "original_text": "KICK at 3,112 m MD (KOPILI) | Severity: CRITICAL | NPT: 46.0 hrs | MW: 12.1 ppg",
+          "source_document": "DDR_DLJ-07_2021-06-18.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "well_id",
+          "original_text": "KICK at 3,112 m MD (KOPILI) | Severity: CRITICAL | NPT: 46.0 hrs | MW: 12.1 ppg\nWell kicked at 3,112 m MD on entering Kopili shale; pit gain 18 bbl, SIDPP 620 psi, SICP 780 psi. Gas\nunits peaked at 1,450. Influx circulated out via driller's method.\nMitigation: Shut in well on annular preventer, circulated kick out via driller's method and raised\nMW from 12.1 to 13.0 ppg.\nLesson: Raise MW before the Kopili transition; overpressure onset is sharp in this field.",
+          "source_document": "DDR_DLJ-07_2021-06-18.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "depth_md",
+          "original_text": "KICK at 3,112 m MD (KOPILI) | Severity: CRITICAL | NPT: 46.0 hrs | MW: 12.1 ppg",
+          "source_document": "DDR_DLJ-07_2021-06-18.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "formation",
+          "original_text": "KICK at 3,112 m MD (KOPILI) | Severity: CRITICAL | NPT: 46.0 hrs | MW: 12.1 ppg",
+          "source_document": "DDR_DLJ-07_2021-06-18.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "severity",
+          "original_text": "KICK at 3,112 m MD (KOPILI) | Severity: CRITICAL | NPT: 46.0 hrs | MW: 12.1 ppg",
+          "source_document": "DDR_DLJ-07_2021-06-18.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "cause",
+          "original_text": "Well kicked at 3,112 m MD on entering Kopili shale; pit gain 18 bbl, SIDPP 620 psi, SICP 780 psi. Gas",
+          "source_document": "DDR_DLJ-07_2021-06-18.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "mitigation",
+          "original_text": "Mitigation: Shut in well on annular preventer, circulated kick out via driller's method and raised",
+          "source_document": "DDR_DLJ-07_2021-06-18.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "outcome",
+          "original_text": "units peaked at 1,450. Influx circulated out via driller's method.",
+          "source_document": "DDR_DLJ-07_2021-06-18.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        },
+        {
+          "field": "npt_hours",
+          "original_text": "KICK at 3,112 m MD (KOPILI) | Severity: CRITICAL | NPT: 46.0 hrs | MW: 12.1 ppg",
+          "source_document": "DDR_DLJ-07_2021-06-18.pdf",
+          "source_page": 1,
+          "source_section": "4. DRILLING EVENTS / REMARKS"
+        }
+      ]
+    }
+  ]
+}

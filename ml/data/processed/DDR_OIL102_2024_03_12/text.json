@@ -1,5 +1,0 @@
-{
-  "file_name": "DDR_OIL102_2024_03_12.pdf",
-  "document_type": "daily_drilling_report",
-  "cleaned_text": "Synthetic Daily Drilling Report — OIL-102\nNOTICE\nSYNTHETIC TRAINING DOCUMENT — NOT REAL OIL DATA.\nDaily Information\nWell\nDate\nDepth Start\nDepth End\nOIL-102\n2024- \n2818 m\n2872 m\nDrilling Parameters\nParameter\nAverage\nMaximum\nROP\n18 m/hr\n24 m/hr\nWOB\n12 klb\n16 klb\nRPM\n95\n115\nTorque\n18 kN·m\n31 kN·m\nSPP\n1850 psi\n2050 psi\nFlow\n620 gpm\n660 gpm\nMud Weight\n10.2 ppg\n10.4 ppg\nEvents\nTime\nDepth\nEvent\nObservation\n08:35\n2845 m\nMUD_LOSS\nSevere losses\n10:10\n2851 m\nMUD_LOSS\nLosses continued\n14:20\n2862 m\nTORQUE_SPIKE\n29 kN·m\nOperations\nDrilled through fractured limestone.\nAt 2845 m, severe mud loss was observed.\nLCM treatment reduced the loss rate.\nTorque briefly increased at 2862 m."
-}

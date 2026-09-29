@@ -1,0 +1,18 @@
+# Well Similarity Configuration for NWIS
+weights:
+  geo_weight: 0.35
+  formation_weight: 0.25
+  depth_weight: 0.20
+  event_weight: 0.20
+  geo_decay_km: 10.0
+  depth_tolerance_m: 150.0
+
+thresholds:
+  default_max_radius_km: 25.0
+  default_top_k: 5
+  high_similarity_threshold: 0.80
+
+paths:
+  default_wells_csv: "data/processed/good_data_processed/historical_dataset/wells.csv"
+  default_events_csv: "data/processed/good_data_processed/historical_dataset/events.csv"
+  output_matrix_path: "data/processed/good_data_processed/similarity_matrix.csv"
