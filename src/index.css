@@ -1,0 +1,244 @@
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/ibm-plex-sans/600.css';
+@import '@fontsource/ibm-plex-sans/700.css';
+
+@import 'leaflet/dist/leaflet.css';
+@import "tailwindcss";
+
+/* ══════════════════════════════════════════════
+   DARK THEME — warm charcoal (default)
+   ══════════════════════════════════════════════ */
+[data-theme="dark"] {
+  --bg:         #1a1712;
+  --panel:      #211d17;
+  --panel2:     #28231b;
+  --line:       #3a3226;
+  --ink:        #ece3d3;
+  --ink-dim:    #a89a83;
+  --ink-faint:  #6e6250;
+  --rust:       #c1440e;
+  --ochre:      #c99a3a;
+  --steel:      #5f7f8f;
+  --olive:      #7c8a5c;
+
+  /* Glow/shadow strengths (darker surfaces need stronger glows) */
+  --glow-ochre:  0 0 6px rgba(201,154,58,0.7);
+  --shadow-popup: 0 4px 16px rgba(0,0,0,0.6);
+  --shadow-tooltip: 0 2px 8px rgba(0,0,0,0.4);
+  --map-filter:  grayscale(0.85) brightness(0.9) contrast(1.1);
+}
+
+/* ══════════════════════════════════════════════
+   LIGHT THEME — warm cream
+   ══════════════════════════════════════════════ */
+[data-theme="light"] {
+  --bg:         #faf7f0;
+  --panel:      #ffffff;
+  --panel2:     #f3efe4;
+  --line:       #ddd6c4;
+  --ink:        #2a2419;
+  --ink-dim:    #5c5340;
+  --ink-faint:  #8a8066;
+  --rust:       #a83b0d;
+  --ochre:      #a67d24;
+  --steel:      #3f6272;
+  --olive:      #5f6b45;
+
+  /* Softer glows on light backgrounds */
+  --glow-ochre:  0 0 4px rgba(166,125,36,0.35);
+  --shadow-popup: 0 4px 16px rgba(0,0,0,0.15);
+  --shadow-tooltip: 0 2px 8px rgba(0,0,0,0.12);
+  --map-filter:  grayscale(0.6) brightness(1.05) contrast(0.95);
+}
+
+/* ══════════════════════════════════════════════
+   Tailwind v4 @theme — reads from CSS vars
+   ══════════════════════════════════════════════ */
+@theme {
+  --color-background: var(--bg);
+  --color-panel:      var(--panel);
+  --color-panel-alt:  var(--panel2);
+  --color-line:       var(--line);
+  --color-foreground: var(--ink);
+  --color-dim:        var(--ink-dim);
+  --color-faint:      var(--ink-faint);
+  --color-danger:     var(--rust);
+  --color-caution:    var(--ochre);
+  --color-normal:     var(--steel);
+  --color-success:    var(--olive);
+  --font-sans: "IBM Plex Sans", sans-serif;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+  [data-theme="light"] {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans m-0 p-0 antialiased;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* Custom scrollbar for panels */
+  ::-webkit-scrollbar {
+    width: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--ink-dim);
+  }
+}
+
+/* ── Leaflet theme overrides ── */
+.leaflet-container {
+  font-family: var(--font-sans) !important;
+  font-size: 13px !important;
+  background: var(--bg) !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--panel) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line) !important;
+  box-shadow: var(--shadow-popup) !important;
+  border-radius: 4px !important;
+}
+
+.leaflet-popup-tip {
+  background: var(--panel) !important;
+  border: 1px solid var(--line) !important;
+  box-shadow: none !important;
+}
+
+.leaflet-popup-content {
+  margin: 10px 14px !important;
+  line-height: 1.5 !important;
+}
+
+.leaflet-popup-close-button {
+  color: var(--ink-dim) !important;
+}
+
+.leaflet-tooltip {
+  background: var(--panel) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding: 4px 8px !important;
+  box-shadow: var(--shadow-tooltip) !important;
+  border-radius: 3px !important;
+}
+
+.leaflet-tooltip-top::before {
+  border-top-color: var(--line) !important;
+}
+
+.leaflet-control-zoom a {
+  background: var(--panel) !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: var(--panel2) !important;
+}
+
+/* ── Active well pulse ── */
+@keyframes wellPulse {
+  0% { r: 8; opacity: 0.9; }
+  50% { r: 14; opacity: 0.3; }
+  100% { r: 8; opacity: 0.9; }
+}
+
+.active-well-pulse {
+  animation: wellPulse 2s ease-in-out infinite;
+}
+
+/* ── Alert highlight on new alerts ── */
+@keyframes alertHighlight {
+  0% { border-color: var(--rust); }
+  50% { border-color: transparent; }
+  100% { border-color: var(--rust); }
+}
+
+.alert-highlight-high {
+  animation: alertHighlight 2.5s ease-in-out infinite;
+}
+
+/* ── Range slider custom styling ── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--steel);
+  border: 2px solid var(--ink);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--steel);
+  border: 2px solid var(--ink);
+  cursor: pointer;
+}
+
+/* ── Telemetry bar chart styling ── */
+.telemetry-bar {
+  transition: height 0.3s ease;
+}
+
+/* ── Grayscale map tiles — theme-aware ── */
+.map-tiles-grayscale {
+  filter: var(--map-filter);
+}
+
+/* ── Leaflet zoom control right-side positioning ── */
+.leaflet-control-zoom {
+  border: 1px solid var(--line) !important;
+  border-radius: 4px !important;
+  overflow: hidden;
+}
+
+.leaflet-control-zoom a {
+  width: 30px !important;
+  height: 30px !important;
+  line-height: 30px !important;
+  font-size: 16px !important;
+}
+
+/* ── Selection rectangle tooltip ── */
+.leaflet-tooltip.leaflet-tooltip-pane {
+  font-family: var(--font-sans) !important;
+}

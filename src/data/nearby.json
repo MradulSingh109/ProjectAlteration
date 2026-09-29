@@ -1,0 +1,44 @@
+[
+  {
+    "well_id": "DLJ-098",
+    "distance_m": 3022,
+    "similarity_score": 0.88,
+    "formation_match": true
+  },
+  {
+    "well_id": "DLJ-101",
+    "distance_m": 9217,
+    "similarity_score": 0.92,
+    "formation_match": true
+  },
+  {
+    "well_id": "DLJ-105",
+    "distance_m": 11093,
+    "similarity_score": 0.85,
+    "formation_match": true
+  },
+  {
+    "well_id": "DLJ-110",
+    "distance_m": 15188,
+    "similarity_score": 0.81,
+    "formation_match": true
+  },
+  {
+    "well_id": "DLJ-080",
+    "distance_m": 2812,
+    "similarity_score": 0.3,
+    "formation_match": false
+  },
+  {
+    "well_id": "DLJ-092",
+    "distance_m": 14869,
+    "similarity_score": 0.15,
+    "formation_match": false
+  },
+  {
+    "well_id": "DLJ-112",
+    "distance_m": 11332,
+    "similarity_score": 0.25,
+    "formation_match": false
+  }
+]
