@@ -102,10 +102,15 @@ function mapVersion(
 }
 
 export class PrismaAlertRuleRepository implements IAlertRuleRepository {
+  private isSeeded = false;
+
   constructor(private readonly prismaClient: PrismaClient = prisma) {}
 
   async listActiveRuleVersions(): Promise<AlertRuleVersionEntity[]> {
-    await this.seedInitialRulesIfEmpty();
+    if (!this.isSeeded) {
+      await this.seedInitialRulesIfEmpty();
+      this.isSeeded = true;
+    }
 
     const rows = await this.prismaClient.alertRuleVersion.findMany({
       where: {
@@ -230,6 +235,15 @@ export class PrismaAlertRuleRepository implements IAlertRuleRepository {
             version: ruleDef.version,
             isActive: true,
             severity: ruleDef.severity,
+            conditions: ruleDef.conditions as Prisma.InputJsonValue,
+            description: ruleDef.versionDescription,
+          },
+        });
+      } else {
+        // Ensure conditions are synchronized with canonical rule definition
+        await this.prismaClient.alertRuleVersion.update({
+          where: { id: existingVersion.id },
+          data: {
             conditions: ruleDef.conditions as Prisma.InputJsonValue,
             description: ruleDef.versionDescription,
           },

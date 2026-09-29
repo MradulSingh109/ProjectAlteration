@@ -37,6 +37,7 @@ export type RuleConditions =
       operator: ">";
       threshold: number; // delta difference threshold
       unit: string;
+      consecutiveReadings: number; // required consecutive readings for sustained discrepancy
     };
 
 /**

@@ -234,12 +234,17 @@ AuditLogService (Durable audit log: ALERT_GENERATE)
    - **Type:** Single-reading threshold evaluation
    - **Explanation Template:** `"Surface torque of {observed} ft-lbf exceeded demonstration threshold of {threshold} ft-lbf."`
 
-3. **Mud Flow Discrepancy Indicator (`MUD_FLOW_DISCREPANCY_DETECT`, v1.0.0)**
-   - **Signal:** `flowRateIn` and `flowRateOut` (gpm)
-   - **Condition:** `(flowRateIn - flowRateOut) > 50 gpm`
-   - **Severity:** `MEDIUM`
-   - **Type:** Paired-signal delta comparison
-   - **Explanation Template:** `"Mud flow discrepancy: flow-in ({in} gpm) exceeds flow-out ({out} gpm) by {delta} gpm, exceeding threshold of {threshold} gpm (potential lost-circulation or pump imbalance indicator)."`
+### Mud Flow Rule
+
+- **Rule Identifier:** `MUD_FLOW_DISCREPANCY_DETECT` (v1.0.0)
+- **Evaluation Mechanism:** **Sustained consecutive-reading based** evaluation across a chronological bounded telemetry window.
+- **Signals:** `flowRateIn` and `flowRateOut` (gpm).
+- **Exact Deterministic Condition:** `(flowRateIn - flowRateOut) > 50.0 gpm` sustained across at least `3` consecutive readings.
+- **Severity:** `CRITICAL`
+- **Generated Alert Type:** `MUD_FLOW_DISCREPANCY` (indicates fluid deficit or pump imbalance; does not make unverified claims of proving lost circulation).
+- **Reset Behavior:** Interruption by any normal reading (`delta <= 50.0 gpm`) or missing metric immediately resets the sustained condition counter.
+- **Out-of-Order Safety:** Readings are strictly sorted chronologically by physical measurement timestamp (with sequence number tie-breaking) before evaluation.
+- **Explanation:** Transparently reports `flowRateIn`, `flowRateOut`, calculated discrepancy, configured threshold (`50.0 gpm`), number of consecutive readings evaluated (`3`), and rule version (`v1`).
 
 ---
 
@@ -249,9 +254,9 @@ AuditLogService (Durable audit log: ALERT_GENERATE)
 - Active versions are marked via `isActive = true`.
 - When an alert is triggered, it persists a full `evidence` JSON snapshot containing:
   - Exact rule version ID and version number
-  - Target metric(s) and observed numeric values
+  - Target metric(s) and observed numeric values (`flowRateIn`, `flowRateOut`, `calculatedDiscrepancy`, `consecutiveReadingsObserved`)
   - Unit of measurement
-  - Configured threshold value and operator
+  - Configured threshold values (`thresholdDelta`, `consecutiveReadingsRequired`)
   - Measurement depth (`depthMd`) and measurement timestamp
 - Modifying a rule's threshold in the future requires creating a new version; historical alerts remain permanently bound to their originating version and evidence snapshot.
 
@@ -291,9 +296,9 @@ Alerts progress through a strictly enforced finite state machine:
 | Role                | Read Alerts (`GET`) | Evaluate Telemetry (`POST`) | Acknowledge Alert (`POST`) | Resolve Alert (`POST`) |
 | :------------------ | :-----------------: | :-------------------------: | :------------------------: | :--------------------: |
 | `VIEWER`            |       Allowed       |      Forbidden (`403`)      |     Forbidden (`403`)      |   Forbidden (`403`)    |
-| `GEOLOGIST`         |       Allowed       |      Forbidden (`403`)      |     Forbidden (`403`)      |   Forbidden (`403`)    |
-| `DRILLING_ENGINEER` |       Allowed       |     Allowed (`200/201`)     |      Allowed (`200`)       |    Allowed (`200`)     |
-| `ADMIN`             |       Allowed       |       Allowed (`201`)       |      Allowed (`200`)       |    Allowed (`200`)     |
+| `GEOLOGIST`         |       Allowed       |       Allowed (`200`)       |      Allowed (`200`)       |    Allowed (`200`)     |
+| `DRILLING_ENGINEER` |       Allowed       |       Allowed (`200`)       |      Allowed (`200`)       |    Allowed (`200`)     |
+| `ADMIN`             |       Allowed       |       Allowed (`200`)       |      Allowed (`200`)       |    Allowed (`200`)     |
 
 ---
 
@@ -308,26 +313,51 @@ Durable audit entries are emitted via `AuditLogService` using safe metadata:
 
 ---
 
+### Range Evaluation
+
+- **Endpoint:** `POST /api/v1/wells/:wellId/telemetry/evaluate`
+- **Auth:** Operational actors (`ADMIN`, `DRILLING_ENGINEER`, `GEOLOGIST`).
+- **Maximum Evaluation Window:** Enforces `MAX_EVALUATION_WINDOW_MS = 86,400,000 ms` (**24 hours**). Windows exceeding 24 hours return `400 Bad Request`.
+- **Maximum Readings Limit:** Enforces `MAX_EVALUATION_READINGS_LIMIT = 100` readings per request. Limits greater than 100 return `400 Bad Request`.
+- **Validation Behavior:**
+  - `from` and `to` are mandatory ISO 8601 timestamps.
+  - Rejects `from > to` with `400 Bad Request`.
+  - Rejects invalid timestamp formats or unparseable inputs with `400 Bad Request`.
+- **Performance Safety:** Uses existing composite index `idx_telemetry_well_timestamp` (`[wellId, timestamp]`). Evaluates readings in chronological order without unrestricted historical table scans.
+
+---
+
 ### Alert Engine Endpoints
 
 #### 1. Evaluate Single Telemetry Reading
 
 - **Method:** `POST /api/v1/telemetry/readings/:readingId/evaluate`
-- **Auth:** Session cookie or Bearer JWT (`ADMIN`, `DRILLING_ENGINEER`)
+- **Auth:** Session cookie or Bearer JWT (`ADMIN`, `DRILLING_ENGINEER`, `GEOLOGIST`)
 - **Status Codes:** `200 OK`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`
 
 #### 2. Evaluate Telemetry Range for a Well
 
 - **Method:** `POST /api/v1/wells/:wellId/telemetry/evaluate`
-- **Auth:** Session cookie or Bearer JWT (`ADMIN`, `DRILLING_ENGINEER`)
-- **Body:** `{ "from": "ISO8601", "to": "ISO8601", "maxReadings": 200 }` (max 500)
+- **Auth:** Session cookie or Bearer JWT (`ADMIN`, `DRILLING_ENGINEER`, `GEOLOGIST`)
+- **Validation & Bounds:**
+  - `from` and `to`: Mandatory ISO 8601 UTC datetime strings (`from <= to`).
+  - `MAX_EVALUATION_WINDOW_MS`: Maximum evaluation duration is **24 hours** (86,400,000 ms).
+  - `MAX_EVALUATION_READINGS_LIMIT`: Maximum **100 readings** per request (default `50`).
+- **Request Body:**
+  ```json
+  {
+    "from": "2026-09-28T00:00:00.000Z",
+    "to": "2026-09-28T12:00:00.000Z",
+    "limit": 50
+  }
+  ```
 - **Status Codes:** `200 OK`, `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`
 
 #### 3. List Well Alerts
 
 - **Method:** `GET /api/v1/wells/:wellId/alerts`
 - **Auth:** Authenticated user (`VIEWER`, `GEOLOGIST`, `DRILLING_ENGINEER`, `ADMIN`)
-- **Query Params:** `status`, `severity`, `alertType`, `ruleCode`, `from`, `to`, `page`, `pageSize` (max 200), `sortOrder`
+- **Query Params:** `status`, `severity`, `alertType`, `ruleCode`, `from`, `to`, `page`, `pageSize` (max 100), `sortOrder`
 - **Status Codes:** `200 OK`, `400 Bad Request`, `401 Unauthorized`, `404 Not Found`
 
 #### 4. Get Alert Detail

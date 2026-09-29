@@ -83,45 +83,60 @@ export const resolveAlertSchema = z.object({
 export type ResolveAlertDto = z.infer<typeof resolveAlertSchema>;
 
 /**
+ * Maximum telemetry time window permitted for bounded evaluation (24 hours in milliseconds).
+ * Prevents unbounded historical scans and ensures predictable database query performance.
+ */
+export const MAX_EVALUATION_WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours (86,400,000 ms)
+
+/**
+ * Maximum telemetry reading count allowed per evaluation request.
+ */
+export const MAX_EVALUATION_READINGS_LIMIT = 100;
+
+/**
  * Schema for bounded range evaluation.
+ * Enforces mandatory from/to timestamps, chrono order, max duration window, and max readings limit.
  */
 export const evaluateRangeSchema = z
   .object({
     from: z
       .string()
       .trim()
+      .min(1, "from is required")
       .datetime({ message: "from must be a valid ISO 8601 datetime string" })
-      .optional()
-      .transform((v) => (v ? new Date(v) : undefined)),
+      .transform((v) => new Date(v)),
     to: z
       .string()
       .trim()
+      .min(1, "to is required")
       .datetime({ message: "to must be a valid ISO 8601 datetime string" })
-      .optional()
-      .transform((v) => (v ? new Date(v) : undefined)),
+      .transform((v) => new Date(v)),
     limit: z.coerce
       .number()
       .int("limit must be an integer")
       .min(1, "limit must be at least 1")
-      .max(100, "limit cannot exceed 100 readings per evaluation")
+      .max(
+        MAX_EVALUATION_READINGS_LIMIT,
+        `limit cannot exceed ${MAX_EVALUATION_READINGS_LIMIT} readings per evaluation`,
+      )
       .default(50),
   })
+  .refine((data) => data.from.getTime() <= data.to.getTime(), {
+    message: "from date must be earlier than or equal to to date",
+    path: ["from"],
+  })
   .refine(
-    (data) => {
-      if (data.from && data.to && data.from.getTime() > data.to.getTime()) {
-        return false;
-      }
-      return true;
-    },
+    (data) =>
+      data.to.getTime() - data.from.getTime() <= MAX_EVALUATION_WINDOW_MS,
     {
-      message: "from date must be earlier than or equal to to date",
-      path: ["from"],
+      message: `Evaluation window cannot exceed ${MAX_EVALUATION_WINDOW_MS / (60 * 60 * 1000)} hours (maximum allowed duration)`,
+      path: ["to"],
     },
   );
 
 export interface EvaluateRangeDto {
-  from?: Date;
-  to?: Date;
+  from: Date;
+  to: Date;
   limit?: number;
 }
 

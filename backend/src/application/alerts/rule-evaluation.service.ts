@@ -10,11 +10,18 @@ import { IAuditLogRepository } from "@/domain/audit/audit-log.repository.interfa
 import { auditLogRepository } from "@/infrastructure/audit/prisma-audit-log.repository";
 import { IRuleEvaluator } from "@/domain/alerts/rule-evaluator.interface";
 import { deterministicRuleEvaluator } from "@/domain/alerts/deterministic-evaluator";
-import { AlertEntity } from "@/domain/alerts/alert.entity";
+import {
+  AlertEntity,
+  AlertRuleVersionEntity,
+} from "@/domain/alerts/alert.entity";
+import { WellEntity } from "@/domain/wells/well.entity";
+import { CanonicalTelemetryReading } from "@/domain/telemetry/telemetry.entity";
 import {
   AlertDetailResponseDto,
   toAlertDetailResponseDto,
   EvaluateRangeDto,
+  MAX_EVALUATION_WINDOW_MS,
+  MAX_EVALUATION_READINGS_LIMIT,
 } from "./alert.dto";
 import { AppError } from "@/lib/errors";
 import { Prisma } from "@prisma/client";
@@ -48,6 +55,135 @@ export class RuleEvaluationService {
   ) {}
 
   /**
+   * Builds a strictly chronologically sorted window of recent telemetry readings
+   * ending at the current target reading.
+   */
+  private buildChronologicalWindow(
+    historyItems: CanonicalTelemetryReading[],
+    currentReading: CanonicalTelemetryReading,
+    windowSize: number,
+  ): CanonicalTelemetryReading[] {
+    const readingMap = new Map<string, CanonicalTelemetryReading>();
+    for (const r of historyItems) {
+      if (r.timestamp.getTime() <= currentReading.timestamp.getTime()) {
+        readingMap.set(r.id, r);
+      }
+    }
+    readingMap.set(currentReading.id, currentReading);
+
+    const sorted = Array.from(readingMap.values()).sort((a, b) => {
+      const timeDiff = a.timestamp.getTime() - b.timestamp.getTime();
+      if (timeDiff !== 0) return timeDiff;
+      return Number(a.sequenceNumber - b.sequenceNumber);
+    });
+
+    return sorted.slice(-windowSize);
+  }
+
+  /**
+   * Internal helper to evaluate a single reading against active rule versions.
+   * Idempotently persists any triggered alerts with race condition protection.
+   */
+  private async evaluateSingleReading(
+    reading: CanonicalTelemetryReading,
+    well: WellEntity,
+    activeVersions: AlertRuleVersionEntity[],
+    recentReadings?: CanonicalTelemetryReading[],
+    actorId?: string,
+    actorRole?: string,
+  ): Promise<AlertEntity[]> {
+    const triggeredAlerts: AlertEntity[] = [];
+
+    // Evaluate each active rule deterministically
+    for (const ruleVersion of activeVersions) {
+      // 1. Evaluate pure condition in-memory first (0ms)
+      const outcome = this.evaluator.evaluate(
+        ruleVersion,
+        reading,
+        well
+          ? { id: well.id, wellId: well.wellId, name: well.name }
+          : undefined,
+        recentReadings,
+      );
+
+      // If condition was not met, skip without database roundtrips
+      if (!outcome.triggered || !outcome.explanation || !outcome.evidence) {
+        continue;
+      }
+
+      // 2. Only if triggered: check if alert already exists for (readingId, ruleVersionId)
+      const existingAlert = await this.alertRepo.findByReadingAndRuleVersion(
+        reading.id,
+        ruleVersion.id,
+      );
+
+      if (existingAlert) {
+        triggeredAlerts.push(existingAlert);
+        continue;
+      }
+
+      const alertType =
+        ruleVersion.rule?.ruleCode === "MUD_FLOW_DISCREPANCY_DETECT"
+          ? "MUD_FLOW_DISCREPANCY"
+          : ruleVersion.rule?.eventType || "DRILLING_ANOMALY";
+
+      try {
+        const created = await this.alertRepo.create({
+          wellId: reading.wellId,
+          ruleVersionId: ruleVersion.id,
+          telemetryReadingId: reading.id,
+          alertType,
+          severity: ruleVersion.severity,
+          triggeredAt: reading.timestamp,
+          explanation: outcome.explanation,
+          evidence: outcome.evidence,
+        });
+
+        triggeredAlerts.push(created);
+
+        // Durable audit log (never store secrets)
+        try {
+          await this.auditLogRepo.create({
+            actorId: actorId || "SYSTEM",
+            actorRole: actorRole || "SYSTEM",
+            action: "ALERT_GENERATE",
+            resourceType: "ALERT",
+            resourceId: created.id,
+            wellId: reading.wellId,
+            details: {
+              ruleCode: ruleVersion.rule?.ruleCode,
+              ruleVersion: ruleVersion.version,
+              telemetryReadingId: reading.id,
+              severity: created.severity,
+              metric: outcome.evidence.metric,
+            },
+          });
+        } catch (auditErr) {
+          console.warn("Failed to create alert audit log:", auditErr);
+        }
+      } catch (error: unknown) {
+        // Handle concurrent duplicate insertion race condition
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === "P2002"
+        ) {
+          const raceExisting = await this.alertRepo.findByReadingAndRuleVersion(
+            reading.id,
+            ruleVersion.id,
+          );
+          if (raceExisting) {
+            triggeredAlerts.push(raceExisting);
+          }
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    return triggeredAlerts;
+  }
+
+  /**
    * Evaluates a single persisted telemetry reading against all active rule versions.
    * Idempotently persists any triggered alerts with race condition protection.
    */
@@ -71,85 +207,37 @@ export class RuleEvaluationService {
     // 3. Resolve active rule versions
     const activeVersions = await this.ruleRepo.listActiveRuleVersions();
 
-    const triggeredAlerts: AlertEntity[] = [];
-
-    // 4. Evaluate each active rule deterministically
-    for (const ruleVersion of activeVersions) {
-      // 4a. Check if alert already exists for (readingId, ruleVersionId)
-      const existingAlert = await this.alertRepo.findByReadingAndRuleVersion(
-        reading.id,
-        ruleVersion.id,
-      );
-
-      if (existingAlert) {
-        triggeredAlerts.push(existingAlert);
-        continue;
+    // Determine max consecutive readings required across active rules
+    const maxConsecutive = activeVersions.reduce((max, rv) => {
+      if (rv.conditions.type === "DELTA" && rv.conditions.consecutiveReadings) {
+        return Math.max(max, rv.conditions.consecutiveReadings);
       }
+      return max;
+    }, 1);
 
-      // 4b. Evaluate pure condition
-      const outcome = this.evaluator.evaluate(
-        ruleVersion,
+    // Fetch chronological history if any sustained rule requires multiple readings
+    let recentReadings: CanonicalTelemetryReading[] | undefined = undefined;
+    if (maxConsecutive > 1) {
+      const history = await this.telemetryRepo.listByWellId(reading.wellId, {
+        to: reading.timestamp,
+        pageSize: maxConsecutive * 2,
+        sortOrder: "desc",
+      });
+      recentReadings = this.buildChronologicalWindow(
+        history.items,
         reading,
-        well
-          ? { id: well.id, wellId: well.wellId, name: well.name }
-          : undefined,
+        maxConsecutive,
       );
-
-      if (outcome.triggered && outcome.explanation && outcome.evidence) {
-        try {
-          const created = await this.alertRepo.create({
-            wellId: reading.wellId,
-            ruleVersionId: ruleVersion.id,
-            telemetryReadingId: reading.id,
-            alertType: ruleVersion.rule?.eventType || "DRILLING_ANOMALY",
-            severity: ruleVersion.severity,
-            triggeredAt: reading.timestamp,
-            explanation: outcome.explanation,
-            evidence: outcome.evidence,
-          });
-
-          triggeredAlerts.push(created);
-
-          // 4c. Durable audit log (never store secrets)
-          try {
-            await this.auditLogRepo.create({
-              actorId: actorId || "SYSTEM",
-              actorRole: actorRole || "SYSTEM",
-              action: "ALERT_GENERATE",
-              resourceType: "ALERT",
-              resourceId: created.id,
-              wellId: reading.wellId,
-              details: {
-                ruleCode: ruleVersion.rule?.ruleCode,
-                ruleVersion: ruleVersion.version,
-                telemetryReadingId: reading.id,
-                severity: created.severity,
-                metric: outcome.evidence.metric,
-              },
-            });
-          } catch (auditErr) {
-            console.warn("Failed to create alert audit log:", auditErr);
-          }
-        } catch (error: unknown) {
-          // Handle concurrent duplicate insertion race condition
-          if (
-            error instanceof Prisma.PrismaClientKnownRequestError &&
-            error.code === "P2002"
-          ) {
-            const raceExisting =
-              await this.alertRepo.findByReadingAndRuleVersion(
-                reading.id,
-                ruleVersion.id,
-              );
-            if (raceExisting) {
-              triggeredAlerts.push(raceExisting);
-            }
-          } else {
-            throw error;
-          }
-        }
-      }
     }
+
+    const triggeredAlerts = await this.evaluateSingleReading(
+      reading,
+      well,
+      activeVersions,
+      recentReadings,
+      actorId,
+      actorRole,
+    );
 
     return {
       readingId: reading.id,
@@ -162,7 +250,7 @@ export class RuleEvaluationService {
 
   /**
    * Evaluates telemetry readings within a bounded time range for a well.
-   * Maximum 100 readings per evaluation window to ensure predictable latency.
+   * Enforces mandatory chronological bounds, maximum time window, and maximum reading limit.
    */
   async evaluateWellRange(
     wellId: string,
@@ -175,7 +263,29 @@ export class RuleEvaluationService {
       throw AppError.notFound("Well not found");
     }
 
-    const limit = Math.min(100, Math.max(1, query.limit || 50));
+    if (query.from.getTime() > query.to.getTime()) {
+      throw AppError.badRequest(
+        "from date must be earlier than or equal to to date",
+      );
+    }
+
+    const durationMs = query.to.getTime() - query.from.getTime();
+    if (durationMs > MAX_EVALUATION_WINDOW_MS) {
+      throw AppError.badRequest(
+        `Evaluation window duration (${(durationMs / (60 * 60 * 1000)).toFixed(1)}h) exceeds maximum allowed limit of ${MAX_EVALUATION_WINDOW_MS / (60 * 60 * 1000)} hours`,
+      );
+    }
+
+    if (query.limit != null && query.limit > MAX_EVALUATION_READINGS_LIMIT) {
+      throw AppError.badRequest(
+        `limit cannot exceed ${MAX_EVALUATION_READINGS_LIMIT} readings per evaluation`,
+      );
+    }
+
+    const limit = Math.min(
+      MAX_EVALUATION_READINGS_LIMIT,
+      Math.max(1, query.limit || 50),
+    );
 
     const readingsResult = await this.telemetryRepo.listByWellId(wellId, {
       from: query.from,
@@ -185,19 +295,75 @@ export class RuleEvaluationService {
       sortOrder: "asc",
     });
 
+    if (readingsResult.items.length === 0) {
+      return {
+        wellId,
+        readingsEvaluatedCount: 0,
+        alertsTriggeredCount: 0,
+        alerts: [],
+      };
+    }
+
+    const activeVersions = await this.ruleRepo.listActiveRuleVersions();
+
+    const maxConsecutive = activeVersions.reduce((max, rv) => {
+      if (rv.conditions.type === "DELTA" && rv.conditions.consecutiveReadings) {
+        return Math.max(max, rv.conditions.consecutiveReadings);
+      }
+      return max;
+    }, 1);
+
+    // Pre-fetch any readings strictly before 'query.from' to populate initial history if maxConsecutive > 1
+    let priorReadings: CanonicalTelemetryReading[] = [];
+    if (maxConsecutive > 1) {
+      const priorHistory = await this.telemetryRepo.listByWellId(wellId, {
+        to: query.from,
+        pageSize: maxConsecutive,
+        sortOrder: "desc",
+      });
+      priorReadings = priorHistory.items.filter(
+        (r) => !readingsResult.items.some((it) => it.id === r.id),
+      );
+    }
+
+    // Build complete chronological timeline
+    const chronologicalBuffer = [
+      ...priorReadings,
+      ...readingsResult.items,
+    ].sort((a, b) => {
+      const timeDiff = a.timestamp.getTime() - b.timestamp.getTime();
+      if (timeDiff !== 0) return timeDiff;
+      return Number(a.sequenceNumber - b.sequenceNumber);
+    });
+
     const allTriggeredAlerts: AlertEntity[] = [];
 
     for (const reading of readingsResult.items) {
-      const readingEval = await this.evaluateReading(
-        reading.id,
+      let recentReadings: CanonicalTelemetryReading[] | undefined = undefined;
+      if (maxConsecutive > 1) {
+        const idx = chronologicalBuffer.findIndex((r) => r.id === reading.id);
+        const windowSlice =
+          idx >= 0
+            ? chronologicalBuffer.slice(
+                Math.max(0, idx - maxConsecutive + 1),
+                idx + 1,
+              )
+            : [reading];
+        recentReadings = windowSlice;
+      }
+
+      const readingAlerts = await this.evaluateSingleReading(
+        reading,
+        well,
+        activeVersions,
+        recentReadings,
         actorId,
         actorRole,
       );
-      // Map back to AlertEntity or accumulate DTOs
-      for (const alertDto of readingEval.alerts) {
-        if (!allTriggeredAlerts.some((a) => a.id === alertDto.id)) {
-          const alert = await this.alertRepo.findById(alertDto.id);
-          if (alert) allTriggeredAlerts.push(alert);
+
+      for (const alert of readingAlerts) {
+        if (!allTriggeredAlerts.some((a) => a.id === alert.id)) {
+          allTriggeredAlerts.push(alert);
         }
       }
     }

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { Role } from "@/domain/auth/roles";
 import { requireRole } from "@/application/auth/guard";
 import { SafeUser } from "@/domain/auth/user.entity";
+import { evaluateRangeSchema } from "@/application/alerts/alert.dto";
 
 describe("Step 11 — Alert Engine RBAC Authorization", () => {
   const viewerUser: SafeUser = {
@@ -113,6 +114,85 @@ describe("Step 11 — Alert Engine RBAC Authorization", () => {
 
     it("permits ADMIN role to view alerts", () => {
       expect(() => requireRole(adminUser, ...VIEW_ALERT_ROLES)).not.toThrow();
+    });
+  });
+
+  describe("Range Evaluation Schema Validation", () => {
+    it("accepts a valid bounded evaluation range with explicit limits", () => {
+      const parsed = evaluateRangeSchema.safeParse({
+        from: "2026-09-28T00:00:00.000Z",
+        to: "2026-09-28T12:00:00.000Z",
+        limit: 50,
+      });
+
+      expect(parsed.success).toBe(true);
+      if (parsed.success) {
+        expect(parsed.data.limit).toBe(50);
+        expect(parsed.data.from).toBeInstanceOf(Date);
+        expect(parsed.data.to).toBeInstanceOf(Date);
+      }
+    });
+
+    it("rejects when from is missing", () => {
+      const parsed = evaluateRangeSchema.safeParse({
+        to: "2026-09-28T12:00:00.000Z",
+      });
+      expect(parsed.success).toBe(false);
+    });
+
+    it("rejects when to is missing", () => {
+      const parsed = evaluateRangeSchema.safeParse({
+        from: "2026-09-28T00:00:00.000Z",
+      });
+      expect(parsed.success).toBe(false);
+    });
+
+    it("rejects when from date is after to date", () => {
+      const parsed = evaluateRangeSchema.safeParse({
+        from: "2026-09-28T12:00:00.000Z",
+        to: "2026-09-28T00:00:00.000Z",
+      });
+      expect(parsed.success).toBe(false);
+      if (!parsed.success) {
+        expect(parsed.error.issues[0].message).toContain(
+          "from date must be earlier than or equal to to date",
+        );
+      }
+    });
+
+    it("accepts exact 24-hour evaluation window", () => {
+      const parsed = evaluateRangeSchema.safeParse({
+        from: "2026-09-28T00:00:00.000Z",
+        to: "2026-09-29T00:00:00.000Z",
+      });
+      expect(parsed.success).toBe(true);
+    });
+
+    it("rejects evaluation window exceeding 24 hours", () => {
+      const parsed = evaluateRangeSchema.safeParse({
+        from: "2026-09-28T00:00:00.000Z",
+        to: "2026-09-29T00:00:01.000Z",
+      });
+      expect(parsed.success).toBe(false);
+      if (!parsed.success) {
+        expect(parsed.error.issues[0].message).toContain(
+          "Evaluation window cannot exceed 24 hours",
+        );
+      }
+    });
+
+    it("rejects limit greater than 100", () => {
+      const parsed = evaluateRangeSchema.safeParse({
+        from: "2026-09-28T00:00:00.000Z",
+        to: "2026-09-28T04:00:00.000Z",
+        limit: 101,
+      });
+      expect(parsed.success).toBe(false);
+      if (!parsed.success) {
+        expect(parsed.error.issues[0].message).toContain(
+          "limit cannot exceed 100",
+        );
+      }
     });
   });
 });

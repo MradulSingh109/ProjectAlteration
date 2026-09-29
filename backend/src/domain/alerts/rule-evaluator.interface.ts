@@ -16,5 +16,6 @@ export interface IRuleEvaluator {
     ruleVersion: AlertRuleVersionEntity,
     reading: CanonicalTelemetryReading,
     wellContext?: { id: string; wellId: string; name: string },
+    recentReadings?: CanonicalTelemetryReading[],
   ): EvaluationOutcome;
 }

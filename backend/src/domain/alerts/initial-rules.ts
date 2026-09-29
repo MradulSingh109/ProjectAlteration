@@ -60,7 +60,7 @@ export const INITIAL_ALERT_RULES: InitialRuleDefinition[] = [
     ruleCode: "MUD_FLOW_DISCREPANCY_DETECT",
     name: "Mud Flow In vs Out Discrepancy Detection",
     description:
-      "Detects significant deficit between mud flow in and mud flow out, indicating possible fluid loss into porous or fractured formations.",
+      "Detects sustained deficit between mud flow in and mud flow out across consecutive readings, indicating potential fluid loss or pump imbalance.",
     eventType: "MUD_LOSS",
     version: 1,
     severity: "CRITICAL",
@@ -71,8 +71,9 @@ export const INITIAL_ALERT_RULES: InitialRuleDefinition[] = [
       operator: ">",
       threshold: 50.0,
       unit: "gpm",
+      consecutiveReadings: 3,
     },
     versionDescription:
-      "Initial demonstration threshold: flow-in exceeding flow-out by >= 50 gpm.",
+      "Initial demonstration threshold: flow-in exceeding flow-out by > 50 gpm across at least 3 consecutive readings.",
   },
 ];

@@ -157,7 +157,41 @@ describe("Alert Lifecycle State Machine & Queries", () => {
   });
 
   describe("Resolution Lifecycle Transition", () => {
-    it("transitions an ACTIVE or ACKNOWLEDGED alert to RESOLVED with notes", async () => {
+    it("rejects direct ACTIVE -> RESOLVED transition with BadRequest (must acknowledge first)", async () => {
+      // Default mock has ACTIVE alert
+      await expect(
+        service.resolveAlert(
+          "alert-100",
+          "user-eng-1",
+          "DRILLING_ENGINEER",
+          "Attempted premature resolution.",
+        ),
+      ).rejects.toThrow(
+        "Alert must be acknowledged before it can be resolved. Transition ACTIVE -> RESOLVED is not permitted.",
+      );
+      // Alert state must not have been mutated
+      expect(mockAlertRepo.updateStatus).not.toHaveBeenCalled();
+      expect(mockAuditRepo.create).not.toHaveBeenCalled();
+    });
+
+    it("transitions an ACKNOWLEDGED alert to RESOLVED with notes via correct ACTIVE -> ACKNOWLEDGED -> RESOLVED sequence", async () => {
+      const acknowledgedAlert: typeof sampleActiveAlert = {
+        ...sampleActiveAlert,
+        status: AlertStatus.ACKNOWLEDGED,
+        acknowledgedBy: "user-eng-1",
+        acknowledgedAt: new Date("2026-09-28T12:05:00Z"),
+      };
+
+      // Simulate an already-acknowledged alert (result of the preceding ACKNOWLEDGE step)
+      vi.mocked(mockAlertRepo.findById).mockResolvedValue(acknowledgedAlert);
+      vi.mocked(mockAlertRepo.updateStatus).mockImplementation((id, data) =>
+        Promise.resolve({
+          ...acknowledgedAlert,
+          ...data,
+          updatedAt: new Date(),
+        }),
+      );
+
       const result = await service.resolveAlert(
         "alert-100",
         "user-eng-1",
@@ -198,6 +232,7 @@ describe("Alert Lifecycle State Machine & Queries", () => {
       expect(mockAlertRepo.updateStatus).not.toHaveBeenCalled();
     });
   });
+
 
   describe("Alert Retrieval", () => {
     it("retrieves paginated alerts for a well", async () => {
