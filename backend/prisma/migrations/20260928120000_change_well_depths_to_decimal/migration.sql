@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "wells" ALTER COLUMN "planned_depth_md" SET DATA TYPE DECIMAL(12,3),
+ALTER COLUMN "planned_depth_tvd" SET DATA TYPE DECIMAL(12,3);
+
+-- AlterTable
+ALTER TABLE "formations" ALTER COLUMN "top_md" SET DATA TYPE DECIMAL(12,3),
+ALTER COLUMN "bottom_md" SET DATA TYPE DECIMAL(12,3);
