@@ -2,9 +2,10 @@ import { NextRequest } from "next/server";
 import { wellService } from "@/application/wells/well.service";
 import { requireAuth } from "@/application/auth/guard";
 import { Role } from "@/domain/auth/roles";
-import { WellStatus } from "@/domain/wells/well.entity";
+import { QueryWellsSchema } from "@/application/wells/well.dto";
 import { verifyCsrf } from "@/infrastructure/auth/csrf.guard";
 import { successResponse, errorResponse } from "@/lib/response";
+import { AppError } from "@/lib/errors";
 
 /**
  * POST /api/v1/wells
@@ -35,16 +36,23 @@ export async function GET(req: NextRequest) {
     await requireAuth(req);
 
     const searchParams = req.nextUrl.searchParams;
-    const field = searchParams.get("field") || undefined;
-    const status = (searchParams.get("status") as WellStatus) || undefined;
-    const limit = searchParams.get("limit")
-      ? parseInt(searchParams.get("limit")!, 10)
-      : undefined;
-    const offset = searchParams.get("offset")
-      ? parseInt(searchParams.get("offset")!, 10)
-      : undefined;
+    const rawQuery: Record<string, string> = {};
+    if (searchParams.has("field")) rawQuery.field = searchParams.get("field")!;
+    if (searchParams.has("status"))
+      rawQuery.status = searchParams.get("status")!;
+    if (searchParams.has("limit")) rawQuery.limit = searchParams.get("limit")!;
+    if (searchParams.has("offset"))
+      rawQuery.offset = searchParams.get("offset")!;
 
-    const wells = await wellService.listWells({ field, status, limit, offset });
+    const parsed = QueryWellsSchema.safeParse(rawQuery);
+    if (!parsed.success) {
+      throw AppError.validation(
+        parsed.error.issues[0]?.message || "Invalid query parameters",
+        parsed.error.issues,
+      );
+    }
+
+    const wells = await wellService.listWells(parsed.data);
 
     return successResponse({ wells }, 200);
   } catch (error) {

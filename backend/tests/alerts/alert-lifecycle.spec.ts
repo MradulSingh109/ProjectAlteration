@@ -233,7 +233,6 @@ describe("Alert Lifecycle State Machine & Queries", () => {
     });
   });
 
-
   describe("Alert Retrieval", () => {
     it("retrieves paginated alerts for a well", async () => {
       const result = await service.listAlertsForWell("well-100", {

@@ -123,6 +123,35 @@ export const UpdateWellSchema = z.object({
 export type UpdateWellInput = z.infer<typeof UpdateWellSchema>;
 
 /**
+ * Query schema for listing wells with optional field and status filters, and bounded pagination.
+ */
+export const QueryWellsSchema = z.object({
+  field: z
+    .string()
+    .trim()
+    .max(100, "Field filter must not exceed 100 characters")
+    .optional(),
+  status: z
+    .enum(WELL_STATUS_VALUES, {
+      message: `Invalid well status. Must be one of: ${WELL_STATUS_VALUES.join(", ")}`,
+    })
+    .optional(),
+  limit: z.coerce
+    .number({ message: "limit must be a number" })
+    .int("limit must be an integer")
+    .min(1, "limit must be at least 1")
+    .max(100, "limit cannot exceed 100")
+    .optional(),
+  offset: z.coerce
+    .number({ message: "offset must be a number" })
+    .int("offset must be an integer")
+    .min(0, "offset must be greater than or equal to 0")
+    .optional(),
+});
+
+export type QueryWellsInput = z.infer<typeof QueryWellsSchema>;
+
+/**
  * Query schema for spatial proximity searches.
  */
 export const NearbyWellQuerySchema = z.object({

@@ -17,6 +17,21 @@ export const documentTypeSchema = z.enum(
 );
 
 /**
+ * Zod schema for validating query parameters when listing documents for a well.
+ */
+export const queryDocumentsSchema = z.object({
+  documentType: documentTypeSchema.optional(),
+  ingestionStatus: z
+    .enum(["PENDING", "PROCESSING", "COMPLETED", "FAILED"] as const, {
+      message:
+        "Invalid ingestionStatus. Must be PENDING, PROCESSING, COMPLETED, or FAILED",
+    })
+    .optional(),
+});
+
+export type QueryDocumentsInput = z.infer<typeof queryDocumentsSchema>;
+
+/**
  * Safe client-facing response DTO for technical drilling documents.
  * SECURITY: NEVER exposes physical storage keys, directory roots, or server paths.
  */

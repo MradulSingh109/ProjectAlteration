@@ -1,380 +1,341 @@
-# Nearby Wells Intelligence System (NWIS) — Backend
+# Nearby Wells Intelligence System (NWIS) — Standalone Backend
 
-Backend API service for **Smart India Hackathon 2026 — Problem Statement 121 (Nearby Wells Intelligence System)**.
-
-This is a headless backend application built using **Next.js (App Router)** and **TypeScript**, engineered around **Clean / Hexagonal Architecture** principles.
+> **Smart India Hackathon 2026 — Problem Statement 121 (NWIS)**  
+> Production-grade, headless, standalone backend engineered for drilling intelligence, offset-well similarity analytics, historical technical document provenance, time-series telemetry ingestion, and deterministic rule-based alert evaluation.
 
 ---
 
-## Architecture Overview
+## 1. Project Purpose
 
-The system isolates HTTP handling from domain and application use cases:
+The **Nearby Wells Intelligence System (NWIS)** is designed to assist petroleum engineers, drilling engineers, and geologists during well planning and drilling operations. By indexing historical offset wells, formation tops, past drilling events (kicks, mud loss, stuck pipe, overpressure), technical document archives (WCR, DDR, Mud Logs), and real-time sensor streams, NWIS provides:
+
+1. **Spatial Proximity & Offset Intelligence**: Deterministic discovery and ranking of nearby wells using geodetic distance, formation stratigraphy overlap, depth interval matching, and historical incident frequency.
+2. **Technical Document Storage & Provenance**: Cryptographically validated, sanitized PDF ingestion with metadata tracking and audit logging.
+3. **Drilling Event Management & Review Workflow**: Operational event indexing with provenance tracking to source documents/pages, confidence boundaries, and human review lifecycle (`PENDING_REVIEW -> APPROVED | EDITED | INVALIDATED`).
+4. **Time-Series Telemetry Ingestion**: High-throughput machine-authenticated drilling parameter ingestion with database-enforced idempotency and out-of-order tolerance.
+5. **Deterministic Alert Engine**: Real-time evaluation of single-reading anomalies and sustained multi-reading conditions (e.g. mud flow discrepancies) with immutable rule versioning, lifecycle state machine (`ACTIVE -> ACKNOWLEDGED -> RESOLVED`), and auditable evidence snapshots.
+
+---
+
+## 2. Architecture
+
+The backend follows **Clean / Hexagonal Architecture** principles, strictly decoupling domain rules, application orchestration, infrastructure adapters, and the HTTP presentation layer:
 
 ```text
-HTTP / API (src/app/api/)
-    ↓
+HTTP / REST API (src/app/api/v1/)
+       │
+       ▼
 Application Layer (src/application/)
-    ↓
+  ├── Auth Guards & RBAC
+  ├── Application Services (Well, Document, Event, Telemetry, Alert, Audit)
+  └── Data Transfer Objects (DTOs) & Zod Validation Schemas
+       │
+       ▼
 Domain Layer (src/domain/)
-    ↓
+  ├── Entities & Value Objects (Pure TypeScript)
+  ├── Repository Interfaces (Ports)
+  └── Domain Services (DeterministicRuleEvaluator)
+       │
+       ▼
 Infrastructure Layer (src/infrastructure/)
+  ├── Database (Prisma ORM & PostgreSQL on Neon)
+  ├── Storage (Local filesystem abstraction with safe key resolution)
+  ├── Security (Jose JWT, Bcrypt password hashing, CSRF guard)
+  └── Audit (Durable database audit trail logger)
 ```
 
-### Directory Structure
+---
+
+## 3. Technology Stack
+
+- **Runtime & Framework:** Node.js (v20+), Next.js 16.3 (App Router, Turbopack)
+- **Language:** TypeScript 5 (Strict Mode, `noImplicitAny: true`, `strictNullChecks: true`)
+- **Database & ORM:** PostgreSQL (Serverless Neon Database), Prisma ORM 6.19
+- **Validation:** Zod 4.6 (Strict schema parsing for requests, queries, and environment)
+- **Cryptography & Security:** `jose` (JWT sign & verify), `bcryptjs` (Salt rounds = 12), Node.js native `crypto`
+- **Testing:** Vitest 5.0 (Unit, integration, and domain state-machine suites)
+- **Code Quality:** ESLint 9 (Flat config), Prettier 3.5
+
+---
+
+## 4. Directory Structure
 
 ```text
 backend/
+├── prisma/
+│   ├── migrations/            # 10 sequential forward migrations
+│   └── schema.prisma          # Database schema models, enums, and indexes
 ├── src/
 │   ├── app/
-│   │   └── api/
-│   │       └── v1/
-│   │           └── health/route.ts      # Health check endpoint
-│   ├── application/                     # Application use cases & service orchestration
-│   ├── domain/                          # Core business models, entities & interfaces
-│   ├── infrastructure/                  # External adapters, database repositories, clients
-│   ├── lib/
-│   │   ├── errors.ts                    # Standardized error definitions (AppError)
-│   │   └── response.ts                  # Uniform API response helpers
-│   └── config/
-│       └── env.ts                       # Environment variable access & defaults
-├── public/                              # Static public assets
-├── tests/                               # Test suite
-├── .env.example                         # Environment configuration template
-├── .gitignore                           # Git ignore rules
-├── .prettierrc                          # Prettier code style configuration
-├── .prettierignore                      # Prettier ignore rules
-├── eslint.config.mjs                    # ESLint flat configuration
-├── next.config.ts                       # Next.js configuration
-├── package.json                         # Dependencies and npm scripts
-└── tsconfig.json                        # Strict TypeScript configuration
+│   │   └── api/v1/            # 29 REST API route endpoints
+│   │       ├── alerts/        # Alert detail, acknowledge, resolve routes
+│   │       ├── auth/          # Login, logout, register, refresh, me routes
+│   │       ├── documents/     # Document stream, metadata, document-events routes
+│   │       ├── events/        # Event detail, review routes
+│   │       ├── health/        # Liveness & database connectivity routes
+│   │       ├── telemetry/     # Machine telemetry ingestion & evaluation routes
+│   │       └── wells/         # Wells, formations, offsets, well-documents, well-alerts
+│   ├── application/           # Application services, DTOs, Zod validators, guards
+│   ├── config/                # Validated environment configuration (env.ts)
+│   ├── domain/                # Entities, repository interfaces, domain evaluators
+│   ├── infrastructure/        # Prisma repositories, storage adapters, security helpers
+│   └── lib/                   # Standardized errors (AppError) and API responses
+├── tests/                     # 30 Vitest test suites (298 passing unit/integration tests)
+├── .env.example               # Environment template with documented requirements
+├── next.config.ts             # Security headers and server configuration
+└── verify-correction.mjs      # Neon database runtime integration test suite (38 checks)
 ```
 
 ---
 
-## Available Scripts
+## 5. Environment Variables
 
-| Script                 | Command                | Purpose                               |
-| :--------------------- | :--------------------- | :------------------------------------ |
-| `npm run dev`          | `next dev`             | Start development server on port 3000 |
-| `npm run build`        | `next build`           | Compile production build              |
-| `npm run start`        | `next start`           | Start compiled production server      |
-| `npm run lint`         | `eslint .`             | Run ESLint checks across codebase     |
-| `npm run format`       | `prettier --write ...` | Auto-format codebase using Prettier   |
-| `npm run format:check` | `prettier --check ...` | Verify code formatting compliance     |
-| `npm run typecheck`    | `tsc --noEmit`         | Strict TypeScript type validation     |
+All variables are centrally validated at startup using Zod in `src/config/env.ts`:
 
----
-
-## Baseline API
-
-### Health Check
-
-- **Endpoint:** `GET /api/v1/health`
-- **Authentication:** None
-- **Response Format:**
-  ```json
-  {
-    "status": "ok",
-    "service": "nwis-backend",
-    "version": "0.1.0",
-    "timestamp": "2026-09-27T10:30:00.000Z"
-  }
-  ```
+| Variable                        | Type                                | Default              | Description                                       |
+| ------------------------------- | ----------------------------------- | -------------------- | ------------------------------------------------- |
+| `NODE_ENV`                      | `development \| production \| test` | `development`        | Runtime environment mode                          |
+| `PORT`                          | `number`                            | `3000`               | Port for local HTTP server                        |
+| `DATABASE_URL`                  | `string`                            | _(Required)_         | PostgreSQL connection string (Neon pooled/direct) |
+| `DATABASE_URL_UNPOOLED`         | `string`                            | _(Optional)_         | Direct connection string for Prisma migrations    |
+| `JWT_SECRET`                    | `string (min 32 chars)`             | _(Dev default)_      | Cryptographic HMAC secret for signing JWTs        |
+| `JWT_EXPIRES_IN`                | `string`                            | `1h`                 | Access token lifetime duration                    |
+| `REFRESH_TOKEN_EXPIRES_IN_DAYS` | `number`                            | `7`                  | Refresh token lifespan (days)                     |
+| `AUTH_COOKIE_NAME`              | `string`                            | `nwis_access_token`  | Name of HTTP-only access token cookie             |
+| `REFRESH_COOKIE_NAME`           | `string`                            | `nwis_refresh_token` | Name of HTTP-only refresh token cookie            |
+| `TRUSTED_ORIGINS`               | `string` (comma-separated)          | `""`                 | Authorized frontend origins for CSRF/CORS         |
+| `DOCUMENT_STORAGE_PATH`         | `string`                            | `storage/documents`  | Local root directory for technical PDF files      |
+| `MAX_DOCUMENT_SIZE_MB`          | `number`                            | `25`                 | Maximum allowed document size (MB)                |
+| `TELEMETRY_API_KEY`             | `string (min 16 chars)`             | _(Dev default)_      | Machine-to-backend API key for rig telemetry      |
 
 ---
 
-## Step 10: Telemetry Ingestion Foundation
+## 6. Database Setup
 
-### Architecture & Transport-Independence
+1. Provision a PostgreSQL 15+ database or Neon project.
+2. Configure `.env` in the `backend/` directory:
+   ```bash
+   DATABASE_URL="postgresql://user:password@ep-xyz.us-east-2.aws.neon.tech/nwis_db?sslmode=require"
+   ```
+3. Generate Prisma client:
+   ```bash
+   npx prisma generate
+   ```
 
-The real-time drilling telemetry ingestion system is built around a transport-independent architecture. The production OIL telemetry transport/protocol is **not finalized yet** (e.g. MQTT, Kafka, WITSML, or WITS0).
+---
 
-Therefore, the core domain and application services remain strictly transport-agnostic:
+## 7. Prisma Migrations
 
-```text
-External Telemetry Source (Dev/Rig Stream)
-         ↓
-Transport Adapter (HttpTelemetryAdapter for dev/testing; swap with MQTT/Kafka later)
-         ↓
-Canonical CreateTelemetryInput
-         ↓
-TelemetryIngestionService (Validates Well, Idempotency, Audit Log)
-         ↓
-ITelemetryRepository (PrismaTelemetryRepository)
-         ↓
-PostgreSQL on Neon (telemetry_readings)
+Database schema evolution is managed via 10 forward migrations:
+
+1. `20260927000000_init`: Initial database health check model.
+2. `20260928102529_add_auth_and_session_models`: Users and sessions with role enum.
+3. `20260928111554_add_wells_and_formations`: Core well master and formation stratigraphy.
+4. `20260928120000_change_well_depths_to_decimal`: Millimeter precision decimal depths.
+5. `20260928173553_add_document_storage`: Document metadata model with file hash uniqueness.
+6. `20260928180136_add_drilling_events`: Drilling operational events with review status.
+7. `20260928182237_enforce_confidence_and_audit_log`: Confidence constraints and audit log model.
+8. `20260928184147_add_drilling_event_query_indexes`: Multi-column indexes for event querying.
+9. `20260928195651_add_telemetry_readings`: Time-series telemetry readings with unique sequence constraints.
+10. `20260928201925_add_alert_engine`: Alert rules, version snapshots, and alerts table.
+
+Apply migrations to target database:
+
+```bash
+npx prisma migrate deploy
 ```
 
-### Canonical Telemetry Contract
-
-Each telemetry reading consists of:
-
-- `wellId` (UUID): Reference to target well in `wells` table.
-- `sourceId` (string): Originating telemetry rig/sensor stream identifier.
-- `sequenceNumber` (integer): Source packet monotonic sequence identifier used for idempotency.
-- `timestamp` (ISO 8601 UTC): Physical measurement timestamp recorded downhole/at rig.
-- `measurements` (object): Physical drilling measurements (stored as PostgreSQL Decimals):
-  - `depthMd` (meters, required non-negative number)
-  - `depthTvd` (meters, optional)
-  - `rateOfPenetration` (m/hr, optional)
-  - `hookLoad` (klbf, optional)
-  - `standpipePressure` (psi, optional)
-  - `annularPressure` (psi, optional)
-  - `surfaceTorque` (ft-lbf, optional)
-  - `rotaryRpm` (RPM, optional)
-  - `flowRateIn` (gpm, optional)
-  - `flowRateOut` (gpm, optional)
-  - `mudDensity` (ppg, optional)
-- `metadata` (optional JSON): Extensible key-value metadata up to 64KB.
-
-### Timestamp Semantics & Out-of-Order Handling
-
-- **Measurement Timestamp (`timestamp`):** The real physical time downhole/on-surface when the reading was taken. Always UTC-aware.
-- **Ingestion Timestamp (`ingestedAt`):** Server arrival timestamp recorded automatically by PostgreSQL.
-- **Out-of-Order Readings:** Due to network lag, packets may arrive out of order. Out-of-order readings are fully persisted and never rejected purely based on older timestamps. Queries retrieve data strictly ordered by measurement `timestamp ASC` (or `DESC`).
-
-### Idempotency Strategy
-
-- Enforced at the database level via unique constraint: `@@unique([wellId, sourceId, sequenceNumber], map: "uq_telemetry_well_source_seq")`.
-- **First ingestion:** Returns `201 Created` with `status: "INGESTED"`, `isDuplicate: false`.
-- **Replay/Duplicate:** Returns `200 OK` with `status: "ALREADY_INGESTED"`, `isDuplicate: true`, returning the existing record deterministically without creating duplicate records or throwing 500 errors.
-- **Race conditions:** Database constraint `uq_telemetry_well_source_seq` catches concurrent inserts with Prisma `P2002` error and cleanly resolves to the existing record.
-
-### Ingestion Authentication
-
-- Machine-to-backend authentication using dedicated `TELEMETRY_API_KEY` (minimum 16 characters).
-- Provided via `x-telemetry-api-key` or `Authorization: Bearer <key>` header.
-- Validated via constant-time comparison (`crypto.timingSafeEqual`) to prevent timing side-channel attacks.
-- Isolated from human session cookie authentication and RBAC.
-
-### Database Indexes
-
-1. `uq_telemetry_well_source_seq` (`well_id`, `source_id`, `sequence_number`): Guarantees uniqueness and instant lookup for idempotency checks.
-2. `idx_telemetry_well_timestamp` (`well_id`, `timestamp`): Optimized for time-series range filtering and chronological ordering for a specific well.
-3. `idx_telemetry_timestamp` (`timestamp`): Enables efficient fleet-wide chronological queries and future time-series retention windows.
-
-### Endpoints
-
-#### 1. Ingest Telemetry Reading
-
-- **Method:** `POST /api/v1/telemetry/readings`
-- **Auth:** Machine API key (`x-telemetry-api-key`)
-- **Status Codes:**
-  - `201 Created`: Successfully ingested.
-  - `200 OK`: Duplicate packet recognized and idempotently handled (`ALREADY_INGESTED`).
-  - `400 Bad Request`: Payload validation failed (NaN, Infinity, negative depths, malformed timestamp).
-  - `401 Unauthorized`: Missing or invalid machine API key.
-  - `404 Not Found`: Referenced well does not exist.
-
-#### 2. Query Well Telemetry Time-Series
-
-- **Method:** `GET /api/v1/wells/:wellId/telemetry`
-- **Auth:** Authenticated user session cookie / Bearer token (accessible to `VIEWER`, `GEOLOGIST`, `DRILLING_ENGINEER`, `ADMIN`).
-- **Query Parameters:**
-  - `from` (ISO 8601 UTC string, optional): Earliest timestamp.
-  - `to` (ISO 8601 UTC string, optional): Latest timestamp.
-  - `page` (integer, default `1`): 1-indexed page.
-  - `pageSize` (integer, default `50`, max `200`): Results per page.
-  - `sortOrder` (`"asc"` | `"desc"`, default `"asc"`): Order by measurement timestamp.
-- **Status Codes:**
-  - `200 OK`: Paginated time-series telemetry.
-  - `400 Bad Request`: Invalid parameters (e.g. `from > to`, `pageSize > 200`).
-  - `401 Unauthorized`: User not authenticated.
-  - `404 Not Found`: Well not found.
-
 ---
 
-## Step 11: Rule-Based Alert Engine
+## 8. Running Locally
 
-### Architecture & Design Principles
+```bash
+# Install dependencies
+npm install
 
-The NWIS Alert Engine is a deterministic, explainable, backend-only rule evaluation engine built directly upon the telemetry foundation of Step 10:
+# Start development server
+npm run dev
 
-```text
-TelemetryReading (PostgreSQL)
-          ↓
-RuleEvaluationService (Single reading or bounded time-series range)
-          ↓
-IAlertRuleRepository (PrismaAlertRuleRepository — Resolves active rule versions)
-          ↓
-IRuleEvaluator (DeterministicRuleEvaluator — Pure domain evaluation)
-          ↓
-EvaluationOutcome (Triggered / Not Triggered, Evidence Snapshot, Explanation)
-          ↓
-IAlertRepository (PrismaAlertRepository — Database-enforced idempotency)
-          ↓
-AuditLogService (Durable audit log: ALERT_GENERATE)
+# Server runs at http://localhost:3000 (API endpoints under /api/v1)
 ```
 
-**Key Architectural Guarantees:**
-
-- **Deterministic & Explainable:** Rule evaluation is a pure function of `(TelemetryReading, AlertRuleVersion)`. No AI, machine learning, probabilistic scoring, or random seeds are used.
-- **Server-Side Templates:** Human-readable explanations are generated using deterministic templates capturing the exact rule name, observed value, unit, threshold condition, and timestamp.
-- **Transport & Storage Decoupled:** Evaluation logic does not depend on HTTP, Next.js, or external message queues; it can be invoked manually via REST APIs or asynchronously by background workers.
-
 ---
 
-### Initial Rule Set & Demonstration Thresholds
+## 9. Running Tests
 
-> [!IMPORTANT]
-> **Domain Calibration Notice:**
-> The threshold values listed below are **configurable demonstration defaults** established for development and deterministic testing. They are **NOT** claimed to be official Oil India Limited (OIL) engineering limits or authoritative field standards. Production deployments require formal calibration and sign-off by drilling domain experts.
+The test suite runs with Vitest in parallel worker threads:
 
-1. **Pressure Spike Anomaly (`PRESSURE_SPIKE_DETECT`, v1.0.0)**
-   - **Signal:** `standpipePressure` (psi)
-   - **Condition:** `standpipePressure > 4500 psi`
-   - **Severity:** `HIGH`
-   - **Type:** Single-reading threshold evaluation
-   - **Explanation Template:** `"Standpipe pressure of {observed} psi exceeded demonstration threshold of {threshold} psi."`
+```bash
+# Run all unit and integration tests
+npm test
 
-2. **Torque Spike Anomaly (`TORQUE_SPIKE_DETECT`, v1.0.0)**
-   - **Signal:** `surfaceTorque` (ft-lbf)
-   - **Condition:** `surfaceTorque > 18000 ft-lbf`
-   - **Severity:** `HIGH`
-   - **Type:** Single-reading threshold evaluation
-   - **Explanation Template:** `"Surface torque of {observed} ft-lbf exceeded demonstration threshold of {threshold} ft-lbf."`
+# Run tests in watch mode
+npx vitest
 
-### Mud Flow Rule
-
-- **Rule Identifier:** `MUD_FLOW_DISCREPANCY_DETECT` (v1.0.0)
-- **Evaluation Mechanism:** **Sustained consecutive-reading based** evaluation across a chronological bounded telemetry window.
-- **Signals:** `flowRateIn` and `flowRateOut` (gpm).
-- **Exact Deterministic Condition:** `(flowRateIn - flowRateOut) > 50.0 gpm` sustained across at least `3` consecutive readings.
-- **Severity:** `CRITICAL`
-- **Generated Alert Type:** `MUD_FLOW_DISCREPANCY` (indicates fluid deficit or pump imbalance; does not make unverified claims of proving lost circulation).
-- **Reset Behavior:** Interruption by any normal reading (`delta <= 50.0 gpm`) or missing metric immediately resets the sustained condition counter.
-- **Out-of-Order Safety:** Readings are strictly sorted chronologically by physical measurement timestamp (with sequence number tie-breaking) before evaluation.
-- **Explanation:** Transparently reports `flowRateIn`, `flowRateOut`, calculated discrepancy, configured threshold (`50.0 gpm`), number of consecutive readings evaluated (`3`), and rule version (`v1`).
-
----
-
-### Rule Versioning & Snapshotting
-
-- Rules (`AlertRule`) and versions (`AlertRuleVersion`) have immutable behavioral identities.
-- Active versions are marked via `isActive = true`.
-- When an alert is triggered, it persists a full `evidence` JSON snapshot containing:
-  - Exact rule version ID and version number
-  - Target metric(s) and observed numeric values (`flowRateIn`, `flowRateOut`, `calculatedDiscrepancy`, `consecutiveReadingsObserved`)
-  - Unit of measurement
-  - Configured threshold values (`thresholdDelta`, `consecutiveReadingsRequired`)
-  - Measurement depth (`depthMd`) and measurement timestamp
-- Modifying a rule's threshold in the future requires creating a new version; historical alerts remain permanently bound to their originating version and evidence snapshot.
-
----
-
-### Alert Lifecycle State Machine
-
-Alerts progress through a strictly enforced finite state machine:
-
-```text
-[ACTIVE] ──(acknowledge)──> [ACKNOWLEDGED] ──(resolve)──> [RESOLVED]
+# Run specific domain test suite
+npx vitest tests/alerts/
 ```
 
-- **Transitions Permitted:**
-  - `ACTIVE` → `ACKNOWLEDGED`
-  - `ACKNOWLEDGED` → `RESOLVED`
-- **Transitions Rejected (HTTP 400 Bad Request):**
-  - `ACTIVE` → `RESOLVED` (Direct resolution requires prior acknowledgement)
-  - `RESOLVED` → `ACTIVE` or `ACKNOWLEDGED` (Terminal state; no reopening)
-  - `ACKNOWLEDGED` → `ACTIVE`
-- **Metadata Recorded:**
-  - `acknowledgedAt`, `acknowledgedById`
-  - `resolvedAt`, `resolvedById`, `resolutionNote`
+---
+
+## 10. Linting, Typecheck & Production Build
+
+```bash
+# Validate strict TypeScript compilation
+npm run typecheck
+
+# Execute ESLint verification
+npm run lint
+
+# Verify code formatting
+npm run format:check
+
+# Compile Next.js production build (Turbopack)
+npm run build
+
+# Start production server
+npm run start
+```
 
 ---
 
-### Idempotency & Concurrency Safety
+## 11. Authentication Architecture
 
-- **Database-Level Constraint:** `@@unique([telemetryReadingId, ruleVersionId], map: "uq_alert_reading_rule_version")`.
-- Evaluating the same telemetry reading against the same active rule version multiple times will **never create duplicate alerts**.
-- Concurrent evaluations racing on the same reading/rule pair are caught via PostgreSQL unique constraint violations (`P2002`) and resolved deterministically to the existing alert.
-
----
-
-### Role-Based Access Control (RBAC)
-
-| Role                | Read Alerts (`GET`) | Evaluate Telemetry (`POST`) | Acknowledge Alert (`POST`) | Resolve Alert (`POST`) |
-| :------------------ | :-----------------: | :-------------------------: | :------------------------: | :--------------------: |
-| `VIEWER`            |       Allowed       |      Forbidden (`403`)      |     Forbidden (`403`)      |   Forbidden (`403`)    |
-| `GEOLOGIST`         |       Allowed       |       Allowed (`200`)       |      Allowed (`200`)       |    Allowed (`200`)     |
-| `DRILLING_ENGINEER` |       Allowed       |       Allowed (`200`)       |      Allowed (`200`)       |    Allowed (`200`)     |
-| `ADMIN`             |       Allowed       |       Allowed (`200`)       |      Allowed (`200`)       |    Allowed (`200`)     |
+- **Dual-Token Architecture:** Short-lived access JWT (1 hour) and long-lived persistent refresh token (7 days).
+- **Session Tracking & Revocation:** Every login creates a `Session` record in PostgreSQL. Token refresh and API calls validate that the session has not been revoked.
+- **Refresh Token Rotation:** On every refresh (`POST /api/v1/auth/refresh`), the old refresh token is invalidated, and a new token hash is written to the database. Replay of old tokens fails.
+- **Secure Transport:** Delivered primarily via `HttpOnly`, `SameSite=Lax`, `Secure` (in production) cookies, with Bearer header fallback for headless/programmatic API clients.
+- **Timing Attack Resistance:** Bcrypt verification uses constant-time comparisons even when users do not exist.
 
 ---
 
-### Audit Logging
+## 12. Role-Based Access Control (RBAC) Matrix
 
-Durable audit entries are emitted via `AuditLogService` using safe metadata:
+NWIS enforces strict role-based access control across four domain roles:
 
-- `ALERT_GENERATE`: Records `alertId`, `wellId`, `ruleCode`, `ruleVersionId`, `telemetryReadingId`, `severity`.
-- `ALERT_ACKNOWLEDGE`: Records `alertId`, `previousStatus`, `newStatus`, `acknowledgedById`.
-- `ALERT_RESOLVE`: Records `alertId`, `previousStatus`, `newStatus`, `resolvedById`, `hasResolutionNote`.
-- **Zero Secrets:** No authorization tokens, API keys, passwords, or PII are logged.
-
----
-
-### Range Evaluation
-
-- **Endpoint:** `POST /api/v1/wells/:wellId/telemetry/evaluate`
-- **Auth:** Operational actors (`ADMIN`, `DRILLING_ENGINEER`, `GEOLOGIST`).
-- **Maximum Evaluation Window:** Enforces `MAX_EVALUATION_WINDOW_MS = 86,400,000 ms` (**24 hours**). Windows exceeding 24 hours return `400 Bad Request`.
-- **Maximum Readings Limit:** Enforces `MAX_EVALUATION_READINGS_LIMIT = 100` readings per request. Limits greater than 100 return `400 Bad Request`.
-- **Validation Behavior:**
-  - `from` and `to` are mandatory ISO 8601 timestamps.
-  - Rejects `from > to` with `400 Bad Request`.
-  - Rejects invalid timestamp formats or unparseable inputs with `400 Bad Request`.
-- **Performance Safety:** Uses existing composite index `idx_telemetry_well_timestamp` (`[wellId, timestamp]`). Evaluates readings in chronological order without unrestricted historical table scans.
+| API Route Family                      | `VIEWER`          | `GEOLOGIST`         | `DRILLING_ENGINEER` | `ADMIN`            |
+| ------------------------------------- | ----------------- | ------------------- | ------------------- | ------------------ |
+| `GET /api/v1/wells` & sub-resources   | Read (`200`)      | Read (`200`)        | Read (`200`)        | Full (`200`)       |
+| `POST/PATCH /api/v1/wells`            | Forbidden (`403`) | Write (`201`/`200`) | Write (`201`/`200`) | Full (`201`/`200`) |
+| `GET /api/v1/documents/:id`           | Download (`200`)  | Download (`200`)    | Download (`200`)    | Download (`200`)   |
+| `POST /api/v1/wells/:id/documents`    | Forbidden (`403`) | Upload (`201`)      | Upload (`201`)      | Upload (`201`)     |
+| `GET /api/v1/events` & summary        | Read (`200`)      | Read (`200`)        | Read (`200`)        | Full (`200`)       |
+| `POST /api/v1/wells/:id/events`       | Forbidden (`403`) | Create (`201`)      | Create (`201`)      | Full (`201`)       |
+| `PATCH /api/v1/events/:id/review`     | Forbidden (`403`) | Review (`200`)      | Review (`200`)      | Full (`200`)       |
+| `GET /api/v1/wells/:id/offsets`       | Read (`200`)      | Read (`200`)        | Read (`200`)        | Full (`200`)       |
+| `POST /api/v1/telemetry/readings`     | Machine Key Only  | Machine Key Only    | Machine Key Only    | Machine Key Only   |
+| `GET /api/v1/wells/:id/telemetry`     | Read (`200`)      | Read (`200`)        | Read (`200`)        | Full (`200`)       |
+| `POST .../telemetry/evaluate`         | Forbidden (`403`) | Evaluate (`200`)    | Evaluate (`200`)    | Full (`200`)       |
+| `GET /api/v1/alerts` & detail         | Read (`200`)      | Read (`200`)        | Read (`200`)        | Full (`200`)       |
+| `POST /api/v1/alerts/:id/acknowledge` | Forbidden (`403`) | Forbidden (`403`)   | Acknowledge (`200`) | Full (`200`)       |
+| `POST /api/v1/alerts/:id/resolve`     | Forbidden (`403`) | Forbidden (`403`)   | Resolve (`200`)     | Full (`200`)       |
 
 ---
 
-### Alert Engine Endpoints
+## 13. Document APIs
 
-#### 1. Evaluate Single Telemetry Reading
+- `POST /api/v1/wells/:wellId/documents`: Multipart form upload (`file`, `documentType`). Enforces magic-byte `%PDF-` validation, maximum 25 MB size limit, filename sanitization, content-hash deduplication, and failure compensation (rolls back physical storage if DB insert fails).
+- `GET /api/v1/wells/:wellId/documents`: Lists documents for a well with validated `documentType` and `ingestionStatus` filters.
+- `GET /api/v1/documents/:documentId`: Secure binary stream. Never accepts or leaks local filesystem paths. Emits `X-Content-Type-Options: nosniff` and `Content-Disposition: inline`.
+- `GET /api/v1/documents/:documentId/metadata`: Returns metadata without downloading file payload.
+- `GET /api/v1/documents/:documentId/events`: Returns drilling events extracted from this specific document.
 
-- **Method:** `POST /api/v1/telemetry/readings/:readingId/evaluate`
-- **Auth:** Session cookie or Bearer JWT (`ADMIN`, `DRILLING_ENGINEER`, `GEOLOGIST`)
-- **Status Codes:** `200 OK`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`
+---
 
-#### 2. Evaluate Telemetry Range for a Well
+## 14. Event APIs & Human Review Workflow
 
-- **Method:** `POST /api/v1/wells/:wellId/telemetry/evaluate`
-- **Auth:** Session cookie or Bearer JWT (`ADMIN`, `DRILLING_ENGINEER`, `GEOLOGIST`)
-- **Validation & Bounds:**
-  - `from` and `to`: Mandatory ISO 8601 UTC datetime strings (`from <= to`).
-  - `MAX_EVALUATION_WINDOW_MS`: Maximum evaluation duration is **24 hours** (86,400,000 ms).
-  - `MAX_EVALUATION_READINGS_LIMIT`: Maximum **100 readings** per request (default `50`).
-- **Request Body:**
-  ```json
-  {
-    "from": "2026-09-28T00:00:00.000Z",
-    "to": "2026-09-28T12:00:00.000Z",
-    "limit": 50
-  }
-  ```
-- **Status Codes:** `200 OK`, `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`
+- `POST /api/v1/wells/:wellId/events`: Ingests candidate drilling events. Strict provenance check verifies `sourceDocumentId` exists and belongs to the target well. Status pinned to `PENDING_REVIEW`.
+- `GET /api/v1/wells/:wellId/events`: Paginated event query with bounded pagination (max 100), depth filters (`minDepthMd`, `maxDepthMd`), severity, eventType, and sorting allowlist.
+- `GET /api/v1/wells/:wellId/events/summary`: Deterministic database aggregation (total events, severity breakdown, NPT counts, shallowest/deepest occurrences).
+- `GET /api/v1/events/:eventId`: Detailed event view including safe source document provenance.
+- `PATCH /api/v1/events/:eventId/review`: Processes review decisions:
+  - `APPROVE` -> Transitions to `APPROVED`.
+  - `EDIT` -> Corrects event fields and transitions to `EDITED`.
+  - `INVALIDATE` -> Marks event as `INVALIDATED` without deleting, preserving audit trail.
+  - Reviewer ID and server timestamp are bound exclusively from authenticated session.
 
-#### 3. List Well Alerts
+---
 
-- **Method:** `GET /api/v1/wells/:wellId/alerts`
-- **Auth:** Authenticated user (`VIEWER`, `GEOLOGIST`, `DRILLING_ENGINEER`, `ADMIN`)
-- **Query Params:** `status`, `severity`, `alertType`, `ruleCode`, `from`, `to`, `page`, `pageSize` (max 100), `sortOrder`
-- **Status Codes:** `200 OK`, `400 Bad Request`, `401 Unauthorized`, `404 Not Found`
+## 15. Offset-Well Intelligence APIs
 
-#### 4. Get Alert Detail
+- `GET /api/v1/wells/nearby`: Radial proximity search using spherical law of cosines / Haversine distance, bounded to radius $\le 50$ km.
+- `GET /api/v1/wells/:wellId/offsets`: Multi-factor deterministic offset-well similarity discovery:
+  1. **Spatial Proximity:** Calculates accurate geodesic distance (km).
+  2. **Stratigraphic Formation Overlap:** Identifies matching formations, computing overlap top/bottom depths and interval length.
+  3. **Depth Interval Overlap:** Quantifies borehole depth intersection between reference planned depth and candidate total depth.
+  4. **Historical Event Evidence:** Aggregates verified drilling events in the candidate well.
+  5. **Explainable Relevance Scoring:** Deterministic weighted formula combining distance decay, stratigraphic overlap, and event density. Completely free of black-box AI heuristics.
 
-- **Method:** `GET /api/v1/alerts/:alertId`
-- **Auth:** Authenticated user (`VIEWER`, `GEOLOGIST`, `DRILLING_ENGINEER`, `ADMIN`)
-- **Status Codes:** `200 OK`, `401 Unauthorized`, `404 Not Found`
+---
 
-#### 5. Acknowledge Alert
+## 16. Telemetry Ingestion APIs
 
-- **Method:** `POST /api/v1/alerts/:alertId/acknowledge`
-- **Auth:** Session cookie or Bearer JWT (`ADMIN`, `DRILLING_ENGINEER`)
-- **Status Codes:** `200 OK`, `400 Bad Request` (invalid transition), `401 Unauthorized`, `403 Forbidden`, `404 Not Found`
+- `POST /api/v1/telemetry/readings`: Machine ingestion adapter.
+  - Authenticated via `TELEMETRY_API_KEY` with constant-time buffer comparison (`crypto.timingSafeEqual`).
+  - Idempotent via unique constraint `@@unique([wellId, sourceId, sequenceNumber])`. New reading returns `201 INGESTED`; duplicate returns `200 ALREADY_INGESTED`.
+  - Tolerates out-of-order packet arrival by indexing and ordering by physical measurement `timestamp`.
+  - Validates numeric boundaries (positive depths, finite numbers).
+- `GET /api/v1/wells/:wellId/telemetry`: Retrieves chronological time-series readings with validated date ranges (`from <= to`), bounded pagination (`pageSize <= 200`), and sort order.
 
-#### 6. Resolve Alert
+---
 
-- **Method:** `POST /api/v1/alerts/:alertId/resolve`
-- **Auth:** Session cookie or Bearer JWT (`ADMIN`, `DRILLING_ENGINEER`)
-- **Body:** `{ "resolutionNote": "Optional note (max 1000 chars)" }`
-- **Status Codes:** `200 OK`, `400 Bad Request` (invalid transition), `401 Unauthorized`, `403 Forbidden`, `404 Not Found`
+## 17. Alert Engine APIs
+
+- `POST /api/v1/telemetry/readings/:readingId/evaluate`: Evaluates deterministic rules against a single reading + historical window.
+- `POST /api/v1/wells/:wellId/telemetry/evaluate`: Evaluates readings in a bounded range:
+  - Maximum window duration: **24 hours** (`MAX_EVALUATION_WINDOW_MS = 86,400,000 ms`).
+  - Maximum readings limit: **100 readings** per evaluation.
+  - Rejects `from > to` or duration $> 24$h with `400 Bad Request`.
+- `GET /api/v1/wells/:wellId/alerts`: Lists paginated alerts with status, severity, and date filters.
+- `GET /api/v1/alerts/:alertId`: Retrieves full alert detail, evidence snapshot, explanation, and timestamps.
+- `POST /api/v1/alerts/:alertId/acknowledge`: Transitions `ACTIVE -> ACKNOWLEDGED`. Restricted to `DRILLING_ENGINEER` and `ADMIN`.
+- `POST /api/v1/alerts/:alertId/resolve`: Transitions `ACKNOWLEDGED -> RESOLVED`. Direct `ACTIVE -> RESOLVED` rejected with `400 Bad Request`.
+
+### Configured Demonstration Rules:
+
+1. `PRESSURE_SPIKE_DETECT` (v1): `standpipePressure > 4500 psi` (Severity: `HIGH`).
+2. `TORQUE_SPIKE_DETECT` (v1): `surfaceTorque > 18000 ft-lbf` (Severity: `HIGH`).
+3. `MUD_FLOW_DISCREPANCY_DETECT` (v1): Sustained deficit `flowRateIn - flowRateOut > 50 gpm` across **3 consecutive chronological readings** (Severity: `CRITICAL`).
+
+---
+
+## 18. Audit Logging
+
+Every state-changing or security-sensitive operation writes a persistent record to the `audit_logs` table:
+
+- **Actions:** `USER_REGISTER`, `USER_LOGIN`, `USER_LOGOUT`, `WELL_CREATE`, `WELL_UPDATE`, `DOCUMENT_UPLOAD`, `EVENT_CREATE`, `EVENT_APPROVE`, `EVENT_EDIT`, `EVENT_INVALIDATE`, `ALERT_GENERATE`, `ALERT_ACKNOWLEDGE`, `ALERT_RESOLVE`.
+- **Zero Secrets Guarantee:** Audit payloads are strictly sanitized. Passwords, JWT secrets, Bearer tokens, and session cookies are never recorded.
+
+---
+
+## 19. Security Considerations
+
+- **CSRF Defense:** State-changing requests (`POST`, `PUT`, `PATCH`, `DELETE`) authenticated via browser cookies validate origin/referer against host headers and configured `TRUSTED_ORIGINS`. Programmatic Bearer requests are excluded.
+- **HTTP Security Headers:** Configured via `next.config.ts`:
+  - `X-Content-Type-Options: nosniff`
+  - `X-Frame-Options: DENY`
+  - `Referrer-Policy: strict-origin-when-cross-origin`
+  - `Permissions-Policy: camera=(), microphone=(), geolocation=()`
+  - `poweredByHeader: false` (removes `X-Powered-By: Next.js` fingerprinting)
+- **Path Traversal Prevention:** Storage keys are server-generated UUIDs (`documents/{wellId}/{uuid}.pdf`). Original client filenames are sanitized for headers and never used as storage paths.
+- **Bounded Inputs:** All pagination is capped (max 100 or 200 items), string lengths are bounded, and evaluation windows are capped at 24 hours.
+
+---
+
+## 20. Known Limitations
+
+1. **Demonstration Thresholds:** Rule thresholds (4,500 psi, 18,000 ft-lbf, 50 gpm) are baseline demonstration values requiring domain calibration before well-site field deployment.
+2. **Rule Pack Scope:** Initial engine seeds 3 deterministic demonstration rules. Additional drilling mechanics rules (vibration harmonics, pack-off ratios, ROP variations) will be packaged in future domain rule sets.
+3. **Storage Backend:** Technical documents currently utilize a clean local filesystem storage abstraction. In cloud deployments, this adapter can be swapped with AWS S3 / Azure Blob Storage implementing the identical `IStorageService` interface.
+
+---
+
+## 21. Deferred AI/ML Integration
+
+To maintain architectural stability and strict separation of concerns, the OCR extraction and ML incident prediction pipeline is isolated behind clean interfaces (`AI_ML_SERVICE_URL`). The backend provides full data models (`extractionConfidence`, `sourceDocumentId`, `sourcePage`) ready to ingest and record predictions once the dedicated AI/ML service is attached in subsequent phases.
+
+---
+
+## 22. Deferred Frontend Integration
+
+The backend is completely headless and transport-ready. A separate Next.js web dashboard / frontend client can authenticate via HTTP-only cookies or Bearer JWTs, adhering to the documented OpenAPI contracts and CSRF/CORS origin configurations.

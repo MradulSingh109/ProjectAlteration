@@ -5,6 +5,7 @@ import { WellEntity, WellStatus } from "@/domain/wells/well.entity";
 import {
   CreateWellSchema,
   UpdateWellSchema,
+  QueryWellsSchema,
 } from "@/application/wells/well.dto";
 import { AppError } from "@/lib/errors";
 
@@ -148,6 +149,59 @@ describe("Well Domain Service & DTO Validation", () => {
           plannedDepthMd: -10,
         }),
       ).toThrow();
+    });
+
+    describe("QueryWellsSchema Validation", () => {
+      it("validates valid query parameters with defaults", () => {
+        const parsed = QueryWellsSchema.parse({
+          field: "Mumbai Offshore",
+          status: "DRILLING",
+          limit: "25",
+          offset: "10",
+        });
+        expect(parsed.field).toBe("Mumbai Offshore");
+        expect(parsed.status).toBe("DRILLING");
+        expect(parsed.limit).toBe(25);
+        expect(parsed.offset).toBe(10);
+      });
+
+      it("accepts empty query and leaves optional parameters undefined", () => {
+        const parsed = QueryWellsSchema.parse({});
+        expect(parsed.field).toBeUndefined();
+        expect(parsed.status).toBeUndefined();
+        expect(parsed.limit).toBeUndefined();
+        expect(parsed.offset).toBeUndefined();
+      });
+
+      it("rejects invalid well status", () => {
+        expect(() =>
+          QueryWellsSchema.parse({
+            status: "INVALID_STATUS",
+          }),
+        ).toThrow(/Invalid well status/);
+      });
+
+      it("rejects limit exceeding 100", () => {
+        expect(() =>
+          QueryWellsSchema.parse({
+            limit: 101,
+          }),
+        ).toThrow(/limit cannot exceed 100/);
+      });
+
+      it("rejects negative limit and negative offset", () => {
+        expect(() =>
+          QueryWellsSchema.parse({
+            limit: 0,
+          }),
+        ).toThrow();
+
+        expect(() =>
+          QueryWellsSchema.parse({
+            offset: -1,
+          }),
+        ).toThrow();
+      });
     });
   });
 

@@ -8,6 +8,7 @@ import {
   DocumentType,
   IngestionStatus,
 } from "@/domain/documents/document.entity";
+import { queryDocumentsSchema } from "@/application/documents/document.dto";
 import { WellEntity } from "@/domain/wells/well.entity";
 
 describe("DocumentService Application Logic & Compensation", () => {
@@ -281,5 +282,38 @@ describe("DocumentService Application Logic & Compensation", () => {
     await expect(service.getDocumentFile("doc-123")).rejects.toThrow(
       /Document storage object is missing or unreadable/i,
     );
+  });
+
+  describe("queryDocumentsSchema Validation", () => {
+    it("validates valid document query parameters", () => {
+      const parsed = queryDocumentsSchema.parse({
+        documentType: "DDR",
+        ingestionStatus: "COMPLETED",
+      });
+      expect(parsed.documentType).toBe("DDR");
+      expect(parsed.ingestionStatus).toBe("COMPLETED");
+    });
+
+    it("accepts empty query and leaves optional filters undefined", () => {
+      const parsed = queryDocumentsSchema.parse({});
+      expect(parsed.documentType).toBeUndefined();
+      expect(parsed.ingestionStatus).toBeUndefined();
+    });
+
+    it("rejects invalid documentType", () => {
+      expect(() =>
+        queryDocumentsSchema.parse({
+          documentType: "INVALID_TYPE",
+        }),
+      ).toThrow(/Invalid documentType/);
+    });
+
+    it("rejects invalid ingestionStatus", () => {
+      expect(() =>
+        queryDocumentsSchema.parse({
+          ingestionStatus: "UNKNOWN_STATUS",
+        }),
+      ).toThrow(/Invalid ingestionStatus/);
+    });
   });
 });

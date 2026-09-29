@@ -6,6 +6,7 @@ import {
   DocumentType,
   IngestionStatus,
 } from "@/domain/documents/document.entity";
+import { queryDocumentsSchema } from "@/application/documents/document.dto";
 import { verifyCsrf } from "@/infrastructure/auth/csrf.guard";
 import { successResponse, errorResponse } from "@/lib/response";
 import { AppError } from "@/lib/errors";
@@ -95,15 +96,26 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     const { id: wellId } = await params;
 
     const searchParams = req.nextUrl.searchParams;
-    const documentType =
-      (searchParams.get("documentType") as DocumentType) || undefined;
-    const ingestionStatus =
-      (searchParams.get("ingestionStatus") as IngestionStatus) || undefined;
+    const rawQuery: Record<string, string> = {};
+    if (searchParams.has("documentType")) {
+      rawQuery.documentType = searchParams.get("documentType")!;
+    }
+    if (searchParams.has("ingestionStatus")) {
+      rawQuery.ingestionStatus = searchParams.get("ingestionStatus")!;
+    }
 
-    const documents = await documentService.listDocumentsByWell(wellId, {
-      documentType,
-      ingestionStatus,
-    });
+    const parsed = queryDocumentsSchema.safeParse(rawQuery);
+    if (!parsed.success) {
+      throw AppError.validation(
+        parsed.error.issues[0]?.message || "Invalid query parameters",
+        parsed.error.issues,
+      );
+    }
+
+    const documents = await documentService.listDocumentsByWell(
+      wellId,
+      parsed.data,
+    );
 
     return successResponse({ documents }, 200);
   } catch (error) {
