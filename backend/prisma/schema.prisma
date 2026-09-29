@@ -1,0 +1,358 @@
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Minimal infrastructure model to verify PostgreSQL connectivity and schema migrations
+model DatabaseHealthCheck {
+  id        String   @id @default(uuid())
+  status    String   @default("healthy")
+  checkedAt DateTime @default(now())
+
+  @@map("database_health_checks")
+}
+
+/// Role-based access control roles for PS 121
+enum Role {
+  ADMIN
+  DRILLING_ENGINEER
+  GEOLOGIST
+  VIEWER
+}
+
+/// Core User entity representing authenticated domain actors
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         Role      @default(VIEWER)
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  sessions     Session[]
+
+  @@map("users")
+}
+
+/// Persistent authentication session enabling revocation and refresh security
+model Session {
+  id               String    @id @default(uuid())
+  userId           String    @map("user_id")
+  refreshTokenHash String?   @unique @map("refresh_token_hash")
+  isRevoked        Boolean   @default(false) @map("is_revoked")
+  expiresAt        DateTime  @map("expires_at")
+  userAgent        String?   @map("user_agent")
+  ipAddress        String?   @map("ip_address")
+  lastUsedAt       DateTime? @default(now()) @map("last_used_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+/// Operational well lifecycle status
+enum WellStatus {
+  PLANNED
+  DRILLING
+  COMPLETED
+  ABANDONED
+}
+
+/// Core Well master record for PS 121
+model Well {
+  id              String      @id @default(uuid())
+  wellId          String      @unique @map("well_id")
+  name            String
+  field           String
+  latitude        Float
+  longitude       Float
+  spudDate        DateTime?   @map("spud_date")
+  plannedDepthMd  Decimal     @map("planned_depth_md") @db.Decimal(12, 3)
+  plannedDepthTvd Decimal     @map("planned_depth_tvd") @db.Decimal(12, 3)
+  status          WellStatus  @default(PLANNED)
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  formations      Formation[]
+  documents       Document[]
+  events          DrillingEvent[]
+  telemetryReadings TelemetryReading[]
+  alerts          Alert[]
+
+  @@index([field])
+  @@index([status])
+  @@index([latitude, longitude])
+  @@map("wells")
+}
+
+/// Geological stratigraphy/formation interval associated with a well
+model Formation {
+  id        String   @id @default(uuid())
+  wellId    String   @map("well_id")
+  name      String
+  topMd     Decimal  @map("top_md") @db.Decimal(12, 3)
+  bottomMd  Decimal  @map("bottom_md") @db.Decimal(12, 3)
+  lithology String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  well Well @relation(fields: [wellId], references: [id], onDelete: Cascade)
+
+  @@index([wellId])
+  @@index([name])
+  @@map("formations")
+}
+
+/// Historical drilling document classification for PS 121
+enum DocumentType {
+  WCR
+  DDR
+  MUD_LOG
+  CEMENTING_REPORT
+  WELL_SURVEY
+}
+
+/// Asynchronous document ingestion lifecycle state
+enum IngestionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+/// Historical drilling and geological technical document
+model Document {
+  id              String          @id @default(uuid())
+  wellId          String          @map("well_id")
+  filename        String          @map("filename")
+  documentType    DocumentType    @map("document_type")
+  mimeType        String          @map("mime_type")
+  fileSize        Int             @map("file_size")
+  fileHash        String          @map("file_hash")
+  storageKey      String          @map("storage_key")
+  uploadedBy      String          @map("uploaded_by")
+  uploadedAt      DateTime        @default(now()) @map("uploaded_at")
+  ingestionStatus IngestionStatus @default(PENDING) @map("ingestion_status")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  well Well @relation(fields: [wellId], references: [id], onDelete: Restrict)
+  events DrillingEvent[]
+
+  @@index([wellId], name: "idx_documents_well_id")
+  @@index([documentType], name: "idx_documents_type")
+  @@index([ingestionStatus], name: "idx_documents_ingestion_status")
+  @@index([fileHash], name: "idx_documents_file_hash")
+  @@unique([wellId, fileHash], map: "uq_well_document_file_hash")
+  @@map("documents")
+}
+
+/// Drilling event taxonomy for PS 121
+enum EventType {
+  MUD_LOSS
+  KICK
+  STUCK_PIPE
+  FISHING
+  TORQUE_SPIKE
+  PRESSURE_SPIKE
+  OVERPRESSURE
+  LOST_CIRCULATION
+  CEMENTING_FAILURE
+  CASING_PROBLEM
+  NPT
+  FORMATION_CHANGE
+  WELL_CONTROL
+}
+
+/// Operational event severity classification
+enum EventSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+/// Human review workflow lifecycle state
+enum ReviewStatus {
+  PENDING_REVIEW
+  APPROVED
+  EDITED
+  INVALIDATED
+}
+
+/// Drilling operational event extracted from historical technical documentation
+model DrillingEvent {
+  id                   String        @id @default(uuid())
+  wellId               String        @map("well_id")
+  eventType            EventType     @map("event_type")
+  depthMd              Decimal       @map("depth_md") @db.Decimal(12, 3)
+  depthTvd             Decimal?      @map("depth_tvd") @db.Decimal(12, 3)
+  formation            String?       @map("formation")
+  severity             EventSeverity @map("severity")
+  description          String        @map("description")
+  cause                String?       @map("cause")
+  mitigation           String?       @map("mitigation")
+  outcome              String?       @map("outcome")
+  sourceDocumentId     String        @map("source_document_id")
+  sourcePage           Int           @map("source_page")
+  extractionConfidence Decimal       @map("extraction_confidence") @db.Decimal(4, 3)
+  reviewStatus         ReviewStatus  @default(PENDING_REVIEW) @map("review_status")
+  reviewedBy           String?       @map("reviewed_by")
+  reviewedAt           DateTime?     @map("reviewed_at")
+  nptHours             Decimal?      @map("npt_hours") @db.Decimal(6, 2)
+  sourceSection        String?       @map("source_section")
+  extractionModel      String?       @map("extraction_model")
+  evidence             Json?         @map("evidence")
+  mlEventId            String?       @map("ml_event_id")
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @updatedAt @map("updated_at")
+
+  well           Well     @relation(fields: [wellId], references: [id], onDelete: Restrict)
+  sourceDocument Document @relation(fields: [sourceDocumentId], references: [id], onDelete: Restrict)
+
+  @@index([wellId], name: "idx_drilling_events_well_id")
+  @@index([eventType], name: "idx_drilling_events_type")
+  @@index([reviewStatus], name: "idx_drilling_events_review_status")
+  @@index([severity], name: "idx_drilling_events_severity")
+  @@index([sourceDocumentId], name: "idx_drilling_events_source_doc")
+  @@index([wellId, reviewStatus], name: "idx_drilling_events_well_review")
+  @@index([wellId, depthMd], name: "idx_drilling_events_well_depth")
+  @@index([sourceDocumentId, createdAt], name: "idx_drilling_events_doc_created")
+  @@index([mlEventId], name: "idx_drilling_events_ml_event_id")
+  @@map("drilling_events")
+}
+
+/// Durable audit record for security- and data-integrity-sensitive domain events
+model AuditLog {
+  id           String   @id @default(uuid())
+  actorId      String?  @map("actor_id")
+  actorRole    String?  @map("actor_role")
+  action       String   @map("action")
+  resourceType String   @map("resource_type")
+  resourceId   String?  @map("resource_id")
+  wellId       String?  @map("well_id")
+  details      Json?    @map("details")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([action], name: "idx_audit_logs_action")
+  @@index([resourceId], name: "idx_audit_logs_resource_id")
+  @@index([wellId], name: "idx_audit_logs_well_id")
+  @@index([createdAt], name: "idx_audit_logs_created_at")
+  @@map("audit_logs")
+}
+
+/// Time-series real-time drilling telemetry measurement record for PS 121
+model TelemetryReading {
+  id                 String   @id @default(uuid())
+  wellId             String   @map("well_id")
+  sourceId           String   @map("source_id")
+  sequenceNumber     BigInt   @map("sequence_number")
+  timestamp          DateTime @map("timestamp")
+  depthMd            Decimal  @map("depth_md") @db.Decimal(12, 3)
+  depthTvd           Decimal? @map("depth_tvd") @db.Decimal(12, 3)
+  rateOfPenetration  Decimal? @map("rate_of_penetration") @db.Decimal(8, 3)
+  hookLoad           Decimal? @map("hook_load") @db.Decimal(10, 2)
+  standpipePressure  Decimal? @map("standpipe_pressure") @db.Decimal(10, 2)
+  annularPressure    Decimal? @map("annular_pressure") @db.Decimal(10, 2)
+  surfaceTorque      Decimal? @map("surface_torque") @db.Decimal(10, 2)
+  rotaryRpm          Decimal? @map("rotary_rpm") @db.Decimal(8, 2)
+  flowRateIn         Decimal? @map("flow_rate_in") @db.Decimal(10, 2)
+  flowRateOut        Decimal? @map("flow_rate_out") @db.Decimal(10, 2)
+  mudDensity         Decimal? @map("mud_density") @db.Decimal(6, 2)
+  metadata           Json?    @map("metadata")
+  ingestedAt         DateTime @default(now()) @map("ingested_at")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  well Well @relation(fields: [wellId], references: [id], onDelete: Restrict)
+  alerts Alert[]
+
+  @@unique([wellId, sourceId, sequenceNumber], map: "uq_telemetry_well_source_seq")
+  @@index([wellId, timestamp], name: "idx_telemetry_well_timestamp")
+  @@index([timestamp], name: "idx_telemetry_timestamp")
+  @@map("telemetry_readings")
+}
+
+/// Lifecycle state of an alert
+enum AlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+/// Alert rule definition with stable code and category
+model AlertRule {
+  id          String             @id @default(uuid())
+  ruleCode    String             @unique @map("rule_code")
+  name        String
+  description String
+  eventType   EventType          @map("event_type")
+  isEnabled   Boolean            @default(true) @map("is_enabled")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+  versions    AlertRuleVersion[]
+
+  @@map("alert_rules")
+}
+
+/// Immutable versioned configuration snapshot for an alert rule
+model AlertRuleVersion {
+  id          String        @id @default(uuid())
+  ruleId      String        @map("rule_id")
+  version     Int
+  isActive    Boolean       @default(false) @map("is_active")
+  severity    EventSeverity
+  conditions  Json          @map("conditions")
+  description String?
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  rule   AlertRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  alerts Alert[]
+
+  @@unique([ruleId, version], map: "uq_alert_rule_version")
+  @@index([ruleId, isActive], name: "idx_alert_rule_version_active")
+  @@map("alert_rule_versions")
+}
+
+/// Persistent, auditable alert generated from telemetry evaluation
+model Alert {
+  id                 String           @id @default(uuid())
+  wellId             String           @map("well_id")
+  ruleVersionId      String           @map("rule_version_id")
+  telemetryReadingId String           @map("telemetry_reading_id")
+  alertType          String           @map("alert_type")
+  severity           EventSeverity
+  status             AlertStatus      @default(ACTIVE)
+  triggeredAt        DateTime         @map("triggered_at")
+  acknowledgedAt     DateTime?        @map("acknowledged_at")
+  acknowledgedBy     String?          @map("acknowledged_by")
+  resolvedAt         DateTime?        @map("resolved_at")
+  resolvedBy         String?          @map("resolved_by")
+  resolutionNotes    String?          @map("resolution_notes")
+  explanation        String           @map("explanation")
+  evidence           Json             @map("evidence")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+
+  well             Well             @relation(fields: [wellId], references: [id], onDelete: Restrict)
+  ruleVersion      AlertRuleVersion @relation(fields: [ruleVersionId], references: [id], onDelete: Restrict)
+  telemetryReading TelemetryReading @relation(fields: [telemetryReadingId], references: [id], onDelete: Restrict)
+
+  @@unique([telemetryReadingId, ruleVersionId], map: "uq_alert_reading_rule_version")
+  @@index([wellId, status], name: "idx_alerts_well_status")
+  @@index([wellId, triggeredAt], name: "idx_alerts_well_triggered")
+  @@index([status], name: "idx_alerts_status")
+  @@index([severity], name: "idx_alerts_severity")
+  @@index([ruleVersionId], name: "idx_alerts_rule_version")
+  @@map("alerts")
+}
