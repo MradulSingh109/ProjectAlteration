@@ -52,34 +52,34 @@ NWIS is engineered as a high-performance **Monorepo** following Clean/Hexagonal 
 ```mermaid
 flowchart TD
     subgraph Client ["Client Presentation Layer (Vite + React 19)"]
-        UI[Interactive Map & Engineering Dashboard]
-        RAG_UI[AI Knowledge Assistant Chat]
-        TELEMETRY_UI[Live Telemetry Charts & Alert Feed]
+        UI["Interactive Map & Engineering Dashboard"]
+        RAG_UI["AI Knowledge Assistant Chat"]
+        TELEMETRY_UI["Live Telemetry Charts & Alert Feed"]
     end
 
     subgraph Vercel ["Vercel Edge / API Gateway (Single Domain)"]
-        GW[Vercel Rewrites / Router]
+        GW["Vercel Rewrites / Router"]
     end
 
     subgraph Backend ["Backend Service (Next.js 16 App Router)"]
-        AUTH[Auth Guard & Jose JWT RBAC]
-        WELL_SVC[Offset & Stratigraphy Engine]
-        EVENT_SVC[Event Provenance & Review Workflow]
-        TELEMETRY_SVC[Telemetry Ingestion & Rule Evaluator]
-        RAG_GATEWAY[Assistant & ML Dispatcher]
-        PRISMA[Prisma ORM 6.19]
+        AUTH["Auth Guard & Jose JWT RBAC"]
+        WELL_SVC["Offset & Stratigraphy Engine"]
+        EVENT_SVC["Event Provenance & Review Workflow"]
+        TELEMETRY_SVC["Telemetry Ingestion & Rule Evaluator"]
+        RAG_GATEWAY["Assistant & ML Dispatcher"]
+        PRISMA["Prisma ORM 6.19"]
     end
 
     subgraph ML_Service ["ML Intelligence Microservice (FastAPI + Python)"]
-        RAG_ENGINE[RAG Knowledge Assistant (BM25 + Semantic)]
-        RISK_MODEL[Mud Loss Random Forest Classifier]
-        SIMILARITY[Spatial & Stratigraphic Similarity Engine]
-        OCR_PIPE[Document Ingestion & OCR Extraction]
+        RAG_ENGINE["RAG Knowledge Assistant (BM25 + Semantic)"]
+        RISK_MODEL["Mud Loss Random Forest Classifier"]
+        SIMILARITY["Spatial & Stratigraphic Similarity Engine"]
+        OCR_PIPE["Document Ingestion & OCR Extraction"]
     end
 
     subgraph Storage ["Durable Infrastructure"]
-        NEON[(Neon Serverless PostgreSQL)]
-        DOCS[(Sanitized Technical Document Store)]
+        NEON[("Neon Serverless PostgreSQL")]
+        DOCS[("Sanitized Technical Document Store")]
     end
 
     UI -->|/api/*| GW
@@ -93,7 +93,7 @@ flowchart TD
     WELL_SVC --> PRISMA
     EVENT_SVC --> PRISMA
     TELEMETRY_SVC --> PRISMA
-    RAG_GATEWAY -->|Internal Service Binding| ML_ENGINE
+    RAG_GATEWAY -->|Internal Service Binding| RAG_ENGINE
     RAG_GATEWAY -.->|High-Availability Fallback| PRISMA
 
     PRISMA --> NEON
