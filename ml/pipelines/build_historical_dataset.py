@@ -10,9 +10,14 @@ from collections import Counter
 from dataclasses import fields
 from pathlib import Path
 
-from ml.src.information_extraction.schemas import ExtractedEvent
-from ml.src.information_extraction.taxonomy import EVENT_TYPES, SEVERITY_LEVELS, TAXONOMY
-from ml.src.information_extraction.well_extractor import WellExtractor
+try:
+    from src.information_extraction.schemas import ExtractedEvent
+    from src.information_extraction.taxonomy import EVENT_TYPES, SEVERITY_LEVELS, TAXONOMY
+    from src.information_extraction.well_extractor import WellExtractor
+except ModuleNotFoundError:
+    from ml.src.information_extraction.schemas import ExtractedEvent
+    from ml.src.information_extraction.taxonomy import EVENT_TYPES, SEVERITY_LEVELS, TAXONOMY
+    from ml.src.information_extraction.well_extractor import WellExtractor
 
 
 EVENT_COLUMNS = tuple(field.name for field in fields(ExtractedEvent))

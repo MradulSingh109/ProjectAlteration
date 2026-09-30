@@ -18,11 +18,18 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from ml.src.document_processing.pdf_reader import read_pdf_document
-from ml.src.document_processing.pdf_classifier import classify_pdf
-from ml.src.document_processing.ocr import run_ocr_pages, should_run_ocr
-from ml.src.document_processing.text_cleaner import clean_text
-from ml.src.document_processing.table_extractor import extract_tables
+try:
+    from src.document_processing.pdf_reader import read_pdf_document
+    from src.document_processing.pdf_classifier import classify_pdf
+    from src.document_processing.ocr import run_ocr_pages, should_run_ocr
+    from src.document_processing.text_cleaner import clean_text
+    from src.document_processing.table_extractor import extract_tables
+except ModuleNotFoundError:
+    from ml.src.document_processing.pdf_reader import read_pdf_document
+    from ml.src.document_processing.pdf_classifier import classify_pdf
+    from ml.src.document_processing.ocr import run_ocr_pages, should_run_ocr
+    from ml.src.document_processing.text_cleaner import clean_text
+    from ml.src.document_processing.table_extractor import extract_tables
 
 
 def process_document(pdf_path: str | Path) -> dict:
