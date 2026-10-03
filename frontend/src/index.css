@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 /* ══════════════════════════════════════════════
-   DARK THEME — warm charcoal (default)
+   DARK THEME — warm charcoal
    ══════════════════════════════════════════════ */
 [data-theme="dark"] {
   --bg:         #1a1712;
@@ -25,7 +25,7 @@
 }
 
 /* ══════════════════════════════════════════════
-   LIGHT THEME — warm cream
+   LIGHT THEME — warm cream (default)
    ══════════════════════════════════════════════ */
 [data-theme="light"] {
   --bg:         #faf7f0;
