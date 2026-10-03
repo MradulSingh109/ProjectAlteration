@@ -47,21 +47,26 @@ During well planning and active drilling operations, engineers must make rapid, 
 
 ## 2. System Architecture
 
-NWIS is engineered as a high-performance **Monorepo** following Clean/Hexagonal architecture:
+## 2. System Architecture
+
+NWIS is engineered as a high-performance monorepo following Clean/Hexagonal architecture. The system separates the client presentation layer, API/backend services, ML intelligence services, and durable infrastructure.
+
+### Architecture Overview
 
 ```mermaid
 flowchart TD
-    subgraph Client ["Client Presentation Layer (Vite + React 19)"]
+
+    subgraph Client["Client Presentation Layer (Vite + React 19)"]
         UI["Interactive Map & Engineering Dashboard"]
         RAG_UI["AI Knowledge Assistant Chat"]
         TELEMETRY_UI["Live Telemetry Charts & Alert Feed"]
     end
 
-    subgraph Vercel ["Vercel Edge / API Gateway (Single Domain)"]
+    subgraph Vercel["Vercel Edge / API Gateway (Single Domain)"]
         GW["Vercel Rewrites / Router"]
     end
 
-    subgraph Backend ["Backend Service (Next.js 16 App Router)"]
+    subgraph Backend["Backend Service (Next.js 16 App Router)"]
         AUTH["Auth Guard & Jose JWT RBAC"]
         WELL_SVC["Offset & Stratigraphy Engine"]
         EVENT_SVC["Event Provenance & Review Workflow"]
@@ -70,37 +75,559 @@ flowchart TD
         PRISMA["Prisma ORM 6.19"]
     end
 
-    subgraph ML_Service ["ML Intelligence Microservice (FastAPI + Python)"]
+    subgraph ML_Service["ML Intelligence Microservice (FastAPI + Python)"]
         RAG_ENGINE["RAG Knowledge Assistant (BM25 + Semantic)"]
         RISK_MODEL["Mud Loss Random Forest Classifier"]
         SIMILARITY["Spatial & Stratigraphic Similarity Engine"]
         OCR_PIPE["Document Ingestion & OCR Extraction"]
     end
 
-    subgraph Storage ["Durable Infrastructure"]
+    subgraph Storage["Durable Infrastructure"]
         NEON[("Neon Serverless PostgreSQL")]
         DOCS[("Sanitized Technical Document Store")]
     end
 
-    UI -->|/api/*| GW
-    RAG_UI -->|/api/v1/assistant| GW
-    TELEMETRY_UI -->|/api/v1/telemetry/*| GW
+    UI -->|"/api/*"| GW
+    RAG_UI -->|"/api/v1/assistant"| GW
+    TELEMETRY_UI -->|"/api/v1/telemetry/*"| GW
 
-    GW -->|/api/v1/*| Backend
-    GW -->|/(.*)| Client
+    GW -->|"/api/v1/*"| Backend
+    GW -->|"Frontend routes"| UI
 
     AUTH --> PRISMA
     WELL_SVC --> PRISMA
     EVENT_SVC --> PRISMA
     TELEMETRY_SVC --> PRISMA
-    RAG_GATEWAY -->|Internal Service Binding| RAG_ENGINE
-    RAG_GATEWAY -.->|High-Availability Fallback| PRISMA
+
+    RAG_GATEWAY -->|"RAG Query"| RAG_ENGINE
+    TELEMETRY_SVC -->|"Risk Inference"| RISK_MODEL
+    WELL_SVC -->|"Well Similarity"| SIMILARITY
+    EVENT_SVC -->|"Document Processing"| OCR_PIPE
+
+    RAG_GATEWAY -.->|"High-Availability Fallback"| PRISMA
 
     PRISMA --> NEON
     EVENT_SVC --> DOCS
 ```
 
+### 2.1 Architecture Layers
+
+#### Client Presentation Layer
+
+The frontend is responsible for visualization, user interaction, live telemetry, historical well exploration, and the AI knowledge assistant.
+
+**Technology:**
+
+* Vite
+* React 19
+* Tailwind CSS
+* shadcn/ui
+* React Query
+* Recharts
+* Map-based geospatial visualization
+
+**Primary interfaces:**
+
+* Interactive well map
+* Active well dashboard
+* Nearby/offset well visualization
+* Historical event timeline
+* Live telemetry charts
+* Risk and alert feed
+* AI Knowledge Assistant
+
 ---
+
+#### Vercel Edge / API Gateway
+
+NWIS uses a single-domain routing layer to expose the frontend and backend through a unified application endpoint.
+
+The gateway is responsible for:
+
+* Frontend route handling
+* API route forwarding
+* Backend service routing
+* Authentication-aware request forwarding
+* Separation of `/api/*` and frontend routes
+
+```text
+User
+ │
+ ▼
+Single Domain
+ │
+ ├── Frontend Routes ──► Vite + React
+ │
+ └── /api/* ───────────► Next.js Backend
+```
+
+---
+
+#### Backend Service
+
+The backend is implemented using **Next.js 16 App Router** and acts as the main application and orchestration layer.
+
+It does not contain the heavy ML logic. Instead, it coordinates requests between the frontend, database, document storage, and ML microservice.
+
+##### Authentication & Authorization
+
+```text
+AUTH
+ ├── JWT validation
+ ├── Role-based access control
+ ├── User authentication
+ └── Protected API routes
+```
+
+**Technology:**
+
+* Jose
+* JWT
+* RBAC
+
+---
+
+##### Offset & Stratigraphy Engine
+
+Responsible for:
+
+* Finding nearby wells
+* Geospatial filtering
+* Well-to-well distance calculations
+* Depth correlation
+* Formation/stratigraphic comparison
+* Requesting similarity analysis from the ML service
+
+```text
+Active Well
+     │
+     ▼
+Well Coordinates
+     │
+     ▼
+Nearby Well Search
+     │
+     ▼
+Stratigraphic Filtering
+     │
+     ▼
+Similarity Engine
+```
+
+---
+
+##### Event Provenance & Review Workflow
+
+Responsible for managing historical drilling events and maintaining traceability back to the original documents.
+
+Examples:
+
+* Mud losses
+* Kicks
+* Stuck pipe
+* Fishing
+* Torque spikes
+* Pressure spikes
+* Formation changes
+* Cementing problems
+* Casing problems
+* Non-productive time
+
+Every extracted event should maintain provenance such as:
+
+```text
+Event
+ ├── Well ID
+ ├── Event Type
+ ├── Depth
+ ├── Formation
+ ├── Severity
+ ├── Description
+ ├── Cause
+ ├── Mitigation
+ ├── Source Document
+ ├── Source Page
+ └── Extraction Confidence
+```
+
+The service also manages human review and verification of ML-generated historical events.
+
+---
+
+##### Telemetry Ingestion & Rule Evaluator
+
+Responsible for:
+
+* Receiving real-time drilling telemetry
+* Normalizing incoming data
+* Evaluating engineering rules
+* Maintaining current well state
+* Triggering ML inference
+* Generating alerts
+
+Example flow:
+
+```text
+eRTMAC / Telemetry
+        │
+        ▼
+Telemetry Ingestion
+        │
+        ▼
+Data Normalization
+        │
+        ├──────────────► Rule Engine
+        │                    │
+        │                    ▼
+        │                 Alerts
+        │
+        ▼
+Risk Model
+        │
+        ▼
+Risk Probability
+```
+
+---
+
+##### Assistant & ML Dispatcher
+
+The RAG Gateway acts as the backend orchestration layer for AI-related requests.
+
+It is responsible for:
+
+* Receiving AI assistant requests
+* Sending RAG queries to the ML service
+* Requesting risk inference when required
+* Combining ML results with database context
+* Returning evidence-backed responses to the frontend
+* Handling ML service failures and fallback behavior
+
+---
+
+### 2.2 ML Intelligence Microservice
+
+The ML layer is implemented as an independent **FastAPI + Python microservice**.
+
+The ML service contains the intelligence-heavy workloads and is intentionally separated from the Next.js backend.
+
+```text
+FastAPI ML Service
+│
+├── RAG Knowledge Assistant
+│   ├── BM25 Retrieval
+│   ├── Semantic Search
+│   └── Context Retrieval
+│
+├── Risk Models
+│   └── Mud Loss Classifier
+│
+├── Similarity Engine
+│   ├── Spatial Similarity
+│   ├── Depth Similarity
+│   └── Stratigraphic Similarity
+│
+└── Document Intelligence
+    ├── PDF Processing
+    ├── OCR
+    ├── Text Extraction
+    └── Event Extraction
+```
+
+---
+
+#### RAG Knowledge Assistant
+
+The RAG engine provides evidence-backed access to historical drilling knowledge.
+
+Pipeline:
+
+```text
+Historical Documents
+        │
+        ▼
+Document Processing
+        │
+        ▼
+Text Extraction / OCR
+        │
+        ▼
+Chunking
+        │
+        ├──► BM25 Index
+        │
+        └──► Semantic Embeddings
+                    │
+                    ▼
+              Vector Retrieval
+                    │
+                    ▼
+             Relevant Context
+                    │
+                    ▼
+                   LLM
+                    │
+                    ▼
+            Evidence-backed Answer
+```
+
+The system should retain document and page-level provenance for retrieved information.
+
+---
+
+#### Mud Loss Risk Model
+
+The first predictive model targets **mud loss risk**.
+
+Potential input features include:
+
+* Measured depth
+* True vertical depth
+* Formation
+* Rate of penetration
+* Weight on bit
+* RPM
+* Torque
+* Standpipe pressure
+* Flow rate
+* Mud weight
+* ECD
+* Lithology
+* Nearby historical events
+* Offset-well similarity
+* Historical mud-loss occurrences
+
+Initial model:
+
+```text
+Random Forest Classifier
+```
+
+Future models can include:
+
+* XGBoost
+* Logistic Regression
+* Gradient Boosting
+* Calibrated probabilistic models
+
+The model output should follow a stable API contract:
+
+```json
+{
+  "well_id": "OIL-102",
+  "depth_md": 2848,
+  "risk_type": "MUD_LOSS",
+  "probability": 0.78,
+  "level": "HIGH",
+  "model_version": "mud-loss-v1"
+}
+```
+
+---
+
+#### Spatial & Stratigraphic Similarity Engine
+
+The similarity engine identifies historical wells that are relevant to the active well.
+
+Similarity can incorporate:
+
+* Geographic distance
+* Formation overlap
+* Depth interval
+* Stratigraphic relationship
+* Reservoir characteristics
+* Well trajectory
+* Historical drilling events
+* Drilling parameter similarity
+
+The initial implementation should remain interpretable so that drilling engineers can understand why a historical well was considered relevant.
+
+---
+
+#### Document Ingestion & OCR
+
+The document intelligence pipeline converts historical technical documents into structured machine-readable information.
+
+```text
+PDF
+ │
+ ▼
+Document Detection
+ │
+ ├── Searchable PDF
+ │       │
+ │       ▼
+ │     Text Extraction
+ │
+ └── Scanned PDF
+         │
+         ▼
+        OCR
+         │
+         ▼
+Text Normalization
+         │
+         ▼
+Section Detection
+         │
+         ▼
+Table Extraction
+         │
+         ▼
+Event Extraction
+         │
+         ▼
+Structured Events
+```
+
+---
+
+### 2.3 Durable Infrastructure
+
+#### PostgreSQL / Neon
+
+The primary transactional database is PostgreSQL hosted using Neon.
+
+It stores:
+
+* Wells
+* Well trajectories
+* Formations
+* Drilling events
+* Telemetry metadata
+* Alerts
+* Users
+* Roles
+* Review status
+* Model outputs
+* Document metadata
+* Provenance information
+
+Prisma is used as the application's database ORM.
+
+```text
+Next.js Backend
+      │
+      ▼
+Prisma ORM
+      │
+      ▼
+PostgreSQL
+      │
+      ▼
+Neon
+```
+
+---
+
+#### Technical Document Store
+
+The document store contains sanitized technical documents and processed document artifacts.
+
+Examples:
+
+```text
+documents/
+├── WCR/
+├── DDR/
+├── MUD_LOG/
+├── CEMENTING/
+├── WELL_SURVEY/
+└── PROCESSED/
+```
+
+Documents should never lose their original provenance.
+
+Each extracted event should be traceable to:
+
+```text
+Document
+   │
+   └── Page
+        │
+        └── Section
+             │
+             └── Original Text
+                  │
+                  └── Extracted Event
+```
+
+---
+
+### 2.4 End-to-End Data Flow
+
+The complete NWIS intelligence flow is:
+
+```mermaid
+flowchart LR
+
+    DOC["Historical Technical Documents"]
+    TEL["Live Drilling Telemetry"]
+    USER["Engineer"]
+
+    OCR["OCR / Document Processing"]
+    NLP["NLP Event Extraction"]
+    DB["PostgreSQL / Neon"]
+    SIM["Similarity Engine"]
+    RAG["RAG Engine"]
+    RISK["Mud Loss Risk Model"]
+    ALERT["Alert Engine"]
+    API["Next.js Backend"]
+    UI["NWIS Dashboard"]
+
+    DOC --> OCR
+    OCR --> NLP
+    NLP --> DB
+
+    TEL --> API
+    API --> RISK
+    API --> SIM
+
+    DB --> SIM
+    DB --> RAG
+
+    SIM --> API
+    RISK --> API
+    RAG --> API
+
+    API --> ALERT
+    API --> UI
+
+    USER --> UI
+    UI --> API
+```
+
+---
+
+### 2.5 Design Principle
+
+NWIS follows a **separation-of-concerns architecture**:
+
+```text
+React
+  │
+  ▼
+API Gateway
+  │
+  ▼
+Next.js Backend
+  │
+  ├── PostgreSQL
+  ├── Document Store
+  │
+  └── FastAPI ML Service
+          │
+          ├── RAG
+          ├── Risk Models
+          ├── Similarity
+          └── OCR / NLP
+```
+
+The core principle is:
+
+> **The backend orchestrates. The ML service reasons. The database stores. The frontend visualizes.**
+
+This separation allows the ML pipeline to evolve independently from the application layer while keeping the overall NWIS system modular, testable, and deployable.
 
 ## 3. End-to-End Operational Workflow
 
